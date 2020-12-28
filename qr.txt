@@ -1,0 +1,335 @@
+import React, { Component } from 'react';
+import { Button, StyleSheet, View, Text, SafeAreaView, Image, TextInput, TouchableOpacity, } from 'react-native';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp, listenOrientationChange as lor, removeOrientationListener as rol, } from 'react-native-responsive-screen';
+import QRCode from 'react-native-qrcode-svg';
+import AsyncStorage from '@react-native-community/async-storage';
+import firestore from '@react-native-firebase/firestore';
+import { ScrollView } from 'react-native-gesture-handler';
+
+class BLogin3 extends React.Component {
+
+
+    constructor(props) {
+        super(props)
+        this.state = {
+            QRCode_value: []
+        };
+    }
+    componentDidMount() {
+        this.getuser()
+        // this.getDataURL()
+    }
+    getuser = async () => {
+        const owner_number = await AsyncStorage.getItem('@owner_number')
+        await firestore()
+            .collection('owner')
+            .doc(owner_number)
+            .get()
+            .then((firebase_data) => {
+                // console.log(firebase_data.data())
+                let array = []
+                array.push(firebase_data.data())
+                // console.log("Array", array)
+                this.setState({
+                    QRCode_value: array
+                }, () => {
+                    // console.log("OR Code Array", this.state.QRCode_value)
+                })
+            })
+    }
+    render() {
+
+        return (
+            <SafeAreaView style={{ backgroundColor: 'white', flex: 1 }} >
+                <ScrollView>
+                    <View
+                        style={{ marginTop: hp('4%'), alignItems: 'center', justifyContent: 'center' }}>
+                        <Image
+                            style={{ width: wp('25%'), height: hp('13.3%') }}
+                            source={require('../img/right.png')}
+                        />
+                    </View>
+                    <View
+                        style={{
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}>
+                        <Text
+                            style={{
+                                marginTop: hp('3%'),
+                                fontSize: wp('7.5%'),
+                                color: '#EA4335',
+                            }}>
+                            Thank you !
+                        </Text>
+                    </View>
+                    <View
+                        style={{
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}>
+                        <Text
+                            style={{
+                                marginTop: hp('2.5%'),
+                                fontSize: wp('5.8%'),
+                                color: 'black',
+                                fontFamily: 'Averia Serif Libre',
+                            }}>
+                            Your business has been registered
+                        </Text>
+                        <Text
+                            style={{
+                                fontSize: wp('5.8%'),
+                                color: 'black',
+                                fontFamily: 'Averia Serif Libre',
+                            }}>
+                            Succesfully.
+                        </Text>
+                    </View>
+
+                    <View
+                        style={{
+                            marginTop: hp('5%'),
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}>
+                            {this.state.QRCode_value ?
+                                <QRCode
+                                    size={wp('50%')}
+                                    value={this.state.QRCode_value}
+                                    getRef={(c) => (this.svg = c)}
+                                /> : null}
+
+                    </View>
+                    <View style={{
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}>
+                        <TouchableOpacity
+                            onPress={() => {
+                                // this.props.navigation.navigate('CustomerList');
+                            }}
+                            style={{
+                                backgroundColor: '#2570EC',
+                                width: wp('90%'),
+                                height: hp('7.5%'),
+                                borderRadius: 50,
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                marginTop: hp('9%'),
+                            }}>
+                            <Text style={{ color: '#FFFFFF', fontSize: wp('4%') }}>Download and print your QR</Text>
+                        </TouchableOpacity>
+                        {/* <TouchableOpacity
+                            onPress={() => {
+                                this.props.navigation.navigate('qrcode_scanner');
+                            }}
+                            style={{
+                                backgroundColor: '#2570EC',
+                                width: wp('90%'),
+                                height: hp('7.5%'),
+                                borderRadius: 50,
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                // marginTop: hp('9%'),
+                            }}>
+                            <Text style={{ color: '#FFFFFF', fontSize: wp('4%') }}>QR Scanner</Text>
+                        </TouchableOpacity> */}
+                    </View>
+                </ScrollView>
+            </SafeAreaView>
+        );
+    }
+}
+export default BLogin3;
+
+
+**************************************************************************************************************************
+       return (
+            <View>
+                <FlatList
+                    data={this.state.list_data}
+                    keyExtractor={(item, index) => { return item.customers_no }}
+                    onDragEnd={({ list_data }) => this.setState({ list_data })}
+                    renderItem={({ item, index }) => (
+                        <List>
+                            <ListItem thumbnail style={{ borderBottomWidth: 1 }}>
+                                <Left>
+                                    <Text style={{ fontWeight: 'bold' }}>{index + 1}</Text>
+                                    <Thumbnail source={require('../img/face1.jpg')} />
+                                </Left>
+                                <Body>
+                                    <Text>{item.name}</Text>
+                                    <Text note numberOfLines={1}>
+                                        {item.customers_no}
+                                    </Text>
+                                </Body>
+                                <Right
+                                    style={{
+                                        flexDirection: 'row',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center'
+                                    }}
+                                >
+                                    <Button transparent>
+                                        <Text>{item.timestamp ? item.timestamp : null}</Text>
+                                    </Button>
+                                    <Button bordered>
+                                        <Text>Done</Text>
+                                    </Button>
+                                </Right>
+                            </ListItem>
+                        </List>
+                    )}
+                />
+                <View
+                    style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        zIndex: 1,
+                        right: 0
+                    }}
+                >
+                    <TouchableOpacity
+                        onPress={() => { this.setState({ modalVisible: true }) }}
+                    >
+                        <View style={{
+                            width: 70,
+                            height: 70,
+                            borderRadius: 70,
+                            backgroundColor: '#FFFFFF',
+                            borderColor: '#EA4335',
+                            borderWidth: 1,
+                            justifyContent: 'center',
+                            alignItems: 'center'
+                        }}>
+                            <Text style={{
+                                color: '#EA4335',
+                                fontSize: 30
+                            }}>+</Text>
+                        </View>
+                    </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                    onPress={() => {
+                        this.clearStorage()
+                    }}
+                    style={{
+                        backgroundColor: '#2570EC',
+                        width: 300,
+                        height: 50,
+                        borderRadius: 24,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        marginTop: 30,
+                        marginLeft: 60,
+                    }}>
+                    <Text style={{ color: 'white', fontSize: 14 }}>Clear</Text>
+                </TouchableOpacity>
+                <Text>{'\n \n'}</Text>
+                {/* ***----------------- appoinment adding modal ---------------*** */}
+                <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={this.state.modalVisible}
+                    onRequestClose={() => {
+                        Alert.alert('Modal has been closed.');
+                    }}>
+                    <View style={styles.overlay}>
+                        <View style={styles.container2}>
+                            <Text
+                                style={{ fontWeight: 'bold', margin: 10, }}>
+                                Add customer’s details
+                </Text>
+                            <TextInput
+                                placeholder="Customer Name"
+                                keyboardType="ascii-capable"
+                                fontSize={20}
+                                value={this.state.customer_name}
+                                onChangeText={(customer_name) => this.setState({ customer_name })}
+                                style={{
+                                    // margin: 25,
+                                    color: '#5F6368',
+                                    width: '100%',
+                                    borderColor: '#2570EC',
+                                    borderBottomWidth: 1,
+                                }}
+                            />
+                            <TextInput
+                                placeholder="Customer Phone Number"
+                                keyboardType="ascii-capable"
+                                fontSize={20}
+                                value={this.state.customer_number}
+                                onChangeText={(customer_number) => this.setState({ customer_number })}
+                                style={{
+                                    // margin: 25,
+                                    color: '#5F6368',
+                                    width: '100%',
+                                    borderColor: '#2570EC',
+                                    borderBottomWidth: 1,
+                                }}
+                            />
+                            <View
+                                style={{ alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row', padding: 25 }}
+                            >
+                                <TouchableHighlight
+                                    onPress={() => {
+                                        this.setState({
+                                            modalVisible: false
+                                        })
+                                    }}
+                                    style={{
+                                        backgroundColor: '#FFFFFF',
+                                        borderRadius: 50,
+                                        borderWidth: 1,
+                                        borderColor: '#2570EC',
+                                        // marginBottom: 80,
+                                        width: 150,
+                                        height: 50,
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                    }}
+                                >
+                                    <Text style={{
+                                        color: '#2570EC',
+                                        // fontSize: 18,
+                                        margin: 25,
+                                        textAlign: 'center',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                    }}>Cancel</Text>
+                                </TouchableHighlight>
+
+                                <TouchableHighlight
+                                    onPress={() => { this.add_Appointment() }}
+                                    style={{
+                                        backgroundColor: '#2570EC',
+                                        borderRadius: 50,
+                                        // marginBottom: 80,
+                                        width: 150,
+                                        height: 50,
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                    }}
+                                >
+                                    <Text style={{
+                                        color: '#FFFFFF',
+                                        // fontSize: 18,
+                                        margin: 25,
+                                        textAlign: 'center',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                    }}>Add Customer</Text>
+                                </TouchableHighlight>
+                            </View>
+
+                        </View>
+                    </View>
+                </Modal>
+                <TouchableOpacity
+                    onPress={() => { this.props.navigation.navigate('Test1') }}
+                >
+                    <Text>test</Text>
+                </TouchableOpacity>
+            </View>

@@ -254,39 +254,40 @@ exports.check = functions.https.onCall((Data, context) => {
 //     .catch(err => { return err })
 // })
 
-// exports.online_appointment = functions.https.onCall(async (data, context) => {
-//   console.log(
-//     'ownerId' + data.ownerId,
-//     'userId' + data.userId,
-//     'user_number' + data.user_number,
-//     'userName' + data.userName,
-//     'userId' + data.userId,
-//     'owner_token' + data.owner_token,
-//     'user_token' + data.user_token
-//   )
-//   await admin.firestore().collection('appointment-count').where('ownerId', '==', data.ownerId).get().then(snap => {
-//     console.log(snap)
-//     let app_number
-//     snap.forEach(r => {
-//       console.log(r);
-//       console.log(r.data().Appointment_numbers)
-//       app_number = r.data().Appointment_numbers
-//     })
-//     return admin.firestore().collection('appointment').add({
-//       ownerId: data.ownerId,
-//       timestamp: new Date(),
-//       userId: data.userId,
-//       user_mobileNo: data.user_number,
-//       user_name: data.userName,
-//       Appointment_No: app_number,
-//       owner_token: data.owner_token,
-//       user_token: data.user_token
-//     })
-//   })
-//     .catch(err => {
-//       return `appointment-count err ${err}`
-//     })
-// })
+exports.online_appointment = functions.https.onCall(async (data, context) => {
+  console.log(
+    'ownerId' + data.ownerId,
+    'userId' + data.userId,
+    'user_number' + data.user_number,
+    'userName' + data.userName,
+    'userId' + data.userId,
+    'owner_token' + data.owner_token,
+    'user_token' + data.user_token
+  )
+  await admin.firestore().collection('appointment-count').where('ownerId', '==', data.ownerId).get().then(snap => {
+    console.log(snap)
+    let app_number
+    snap.forEach(r => {
+      console.log(r);
+      console.log(r.data().Appointment_numbers)
+      app_number = r.data().Appointment_numbers
+    })
+    console.log("this is our app number", app_number)
+    return admin.firestore().collection('appointment').add({
+      ownerId: data.ownerId,
+      timestamp: new Date(),
+      userId: data.userId,
+      user_mobileNo: data.user_number,
+      user_name: data.userName,
+      Appointment_No: app_number,
+      owner_token: data.owner_token,
+      user_token: data.user_token
+    })
+  })
+    .catch(err => {
+      return `appointment-count err ${err}`
+    })
+})
 
 // exports.offline_appointment = functions.https.onCall(async (data, context) => {
 //   console.log(

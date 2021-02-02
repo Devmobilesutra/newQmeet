@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
-import { Button, StyleSheet, View, Text, TouchableOpacity, Alert, SafeAreaView, } from 'react-native';
+import { Button, StyleSheet, View, Text, TouchableOpacity, Alert, SafeAreaView, Image } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import NetInfo from "@react-native-community/netinfo";
 import { widthPercentageToDP as wp, heightPercentageToDP as hp, listenOrientationChange as lor, removeOrientationListener as rol, } from 'react-native-responsive-screen';
 import firestore from '@react-native-firebase/firestore';
+import { Container, Header, Title, Content, Left, Right, Body, Icon } from 'native-base';
 
 class Splashscreen extends React.Component {
   constructor(props) {
@@ -44,15 +45,6 @@ class Splashscreen extends React.Component {
                 this.props.navigation.navigate('Appointment_List')
 
               } else if (user_type === '1') {
-
-                // let appointment = await AsyncStorage.getItem('@SetAppointment')
-                // let Book_ownerId = await AsyncStorage.getItem('@Book_ownerId')
-                // console.log('user')
-                // if (appointment == 'true') {
-                //   this.props.navigation.navigate('Customer_Ticket', { ownerId: Book_ownerId })
-                // } else {
-                //   this.props.navigation.navigate('Book_Appointment')
-                // }
 
                 const appIsexist = await firestore().collection('appointment').where('user_mobileNo', '==', value).get()
 
@@ -95,88 +87,18 @@ class Splashscreen extends React.Component {
   render() {
     return (
       <SafeAreaView style={{ flex: 1 }}>
-        <View style={styles.container}>
-          <View
-            style={{
-              marginTop: hp('12%'),
-              borderRadius: 100,
-              width: wp('35%'),
-              height: hp('18%'),
-              backgroundColor: '#E9E9E9',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}>
-            <Text
-              style={{
-                fontSize: wp('20%'),
-                color: '#818181',
-                justifyContent: 'center',
-                alignItems: 'center',
-                fontFamily: 'Averia Serif Libre',
-              }}>
-              Q
-            </Text>
-          </View>
-          <View
-            style={{
-              marginTop: hp('3%'),
-              flexDirection: 'row',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}>
-            <View
-              style={{
-                backgroundColor: '#2570EC',
-                width: wp('6.47%'),
-                height: hp('3.5%'),
-                borderRadius: 100,
-                marginRight: wp('3%'),
-              }}
+        <Container>
+          <Content contentContainerStyle={styles.container}>
+            <Image
+              style={styles.SplashScreen_Logo}
+              source={require('../Assets/SplashScreen_Logo.jpg')}
             />
-            <View
-              style={{
-                backgroundColor: '#FBBC05',
-                width: wp('6.47%'),
-                height: hp('3.5%'),
-                borderRadius: 100,
-                marginRight: wp('3%'),
-              }}
+            <Image
+              style={styles.SplashScreen_Vector}
+              source={require('../Assets/SplashScreen_Vector.jpg')}
             />
-            <View
-              style={{
-                backgroundColor: '#EA4335',
-                width: wp('6.47%'),
-                height: hp('3.5%'),
-                borderRadius: 100,
-                marginRight: wp('3%'),
-              }}
-            />
-            <View
-              style={{
-                backgroundColor: '#199039',
-                width: wp('6.47%'),
-                height: hp('3.5%'),
-                borderRadius: 100,
-              }}
-            />
-          </View>
-
-          <TouchableOpacity
-            style={{
-              marginTop: hp('35%'),
-            }}
-          // onPress={() => this.props.navigation.navigate('Welcome')}
-          >
-            <Text
-              style={{
-                fontSize: 40,
-                color: '#C4C4C4',
-                fontFamily: 'Averia Serif Libre',
-              }}>
-              Qmeet
-            </Text>
-          </TouchableOpacity>
-        </View>
+          </Content>
+        </Container>
       </SafeAreaView>
     );
   }
@@ -185,9 +107,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
   },
+  SplashScreen_Logo: {
+    width: 105,
+    height: 144,
+  },
+  SplashScreen_Vector: {
+    marginTop: wp('40%'),
+    width: 90.42,
+    height: 25.44,
+  }
 });
 
 export default Splashscreen;

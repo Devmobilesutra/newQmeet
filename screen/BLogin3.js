@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
-import { Button, BackHandler, StyleSheet, View, Text, SafeAreaView, Image, TextInput, TouchableOpacity, Dimensions, ToastAndroid, ScrollView, PermissionsAndroid, Alert, Platform } from 'react-native';
+import { BackHandler, StyleSheet, View, Text, SafeAreaView, Image, TextInput, TouchableOpacity, Dimensions, ToastAndroid, ScrollView, PermissionsAndroid, Alert, Platform } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp, listenOrientationChange as lor, removeOrientationListener as rol, } from 'react-native-responsive-screen';
+import { Container, Header, Title, Content, Footer, FooterTab, Button, Left, Right, Body, Icon } from 'native-base';
 import QRCode from 'react-native-qrcode-svg';
 import AsyncStorage from '@react-native-community/async-storage';
 import firestore from '@react-native-firebase/firestore';
-import { Left } from 'native-base';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
 
 const { width } = Dimensions.get('window');
@@ -66,11 +66,11 @@ class BLogin3 extends React.Component {
         this.props.navigation.navigate('profile_details_2')
         return true;
 
-      };
-    
-      componentWillUnmount() {
+    };
+
+    componentWillUnmount() {
         BackHandler.removeEventListener("hardwareBackPress", this.backAction);
-      }
+    }
     componentDidMount() {
         this.getuser()
         // this.getDataURL()
@@ -147,29 +147,30 @@ class BLogin3 extends React.Component {
             const qrcode = await this.getQR();
             let options = {
                 html: `
-        <div style="height:200px;display:flex;align-items:center;justify-content:center;flex-direction:column">
-                <h1  style="font-size:50px">QMeet</h1>
+                <div style="height:180px;display:flex;justify-content:center;">
+                <div style="display:flex;flex-direction:row">
+                    <h2 style="font-size:50px;color:red;font-family: Averia Serif Libre;">Q</h2>
+                    <h2 style="font-size:50px;font-family: roboto;">meet</h2>
+                </div>
+            </div>
+            <div style="height:100px;display:flex;align-items:center;justify-content:center;flex-direction:column">
                 <p style="font-size:20px">Online Appointment Booking App</p>
-        </div>
-        <div style="height:200px;display:flex;align-items:center;justify-content:center;flex-direction:column">
-            <h1>${this.state.Buisness_name}</h1>
-            <p style="font-size:20px">Scan this QR code</p>
-        </div>
-        <div style="height:500px;display:flex;align-items:center;justify-content:center;margin:50px auto">
-            <img src="data:image/png;base64,${qrcode}" height="400" width="400" />
-        </div>
-        <div style="height:200px;display:flex;align-items:center;justify-content:center;flex-direction:column">
-            <h1>OR</h1>
-            <p style="font-size:16px">Enter mobile Number</p>
-            <h1>${this.state.mobile}</h1>            
-        </div>
-        <div style="height:200px;display:flex;align-items:center;justify-content:center;flex-direction:column">
-            <p style="font-size:16px">Download Qmeet Application to book an Appointment</p>           
-            <p style="font-size:16px">wwww.qmeetbooking.com</p>           
-        </div>
+                <h1>${this.state.Buisness_name}</h1>
+                <p style="font-size:20px">Scan this QR code</p>
+            </div>
+            <div style="height:300px;display:flex;align-items:center;justify-content:center;margin:40px auto">
+                <img src="data:image/png;base64,${qrcode}" height="300" width="300" />
+            </div>
+            <div style="height:190px;display:flex;align-items:center;flex-direction:column">
+                <h1>OR</h1>
+                <p style="font-size:16px">Enter mobile Number</p>
+                <h1>${this.state.mobile}</h1>
+                <p style="font-size:16px">Download Qmeet Application to book an Appointment</p>
+                <p style="font-size:16px">www.qmeetbooking.com</p>
+            </div>            
         `,
                 fileName: `${this.state.Buisness_name}`,
-                directory: 'Documents',
+                directory: 'Qmeet',
             };
 
             let file = await RNHTMLtoPDF.convert(options);
@@ -179,7 +180,7 @@ class BLogin3 extends React.Component {
                 this.executeView(file.filePath);
             } else {
                 this.showAlert(
-                    `File is downloaded in documents directory at ${this.state.Buisness_name}.pdf`,
+                    `File is downloaded in Qmeet directory as ${this.state.Buisness_name}.pdf`,
                 );
             }
         } catch (error) {
@@ -226,18 +227,9 @@ class BLogin3 extends React.Component {
 
         return (
             <SafeAreaView style={styles.container}>
-                {/* <Left >
-                    <TouchableOpacity onPress={() => { this.props.navigation.navigate('Test1') }}>
-                        <Text>☰</Text>
-                    </TouchableOpacity>
-                </Left> */}
                 <ScrollView>
-                    <View
-                        style={{ marginTop: hp('4%'), alignItems: 'center', justifyContent: 'center' }}>
-                        <Image
-                            style={{ width: wp('25%'), height: hp('14%') }}
-                            source={require('../img/right.png')}
-                        />
+                    <View style={{ marginTop: hp('4%'), alignItems: 'center', justifyContent: 'center' }}>
+                        <Image style={{ width: 80, height: 80 }} source={require('../Assets/Group_39.png')} />
                     </View>
                     <View
                         style={{
@@ -249,8 +241,11 @@ class BLogin3 extends React.Component {
                                 marginTop: hp('3%'),
                                 fontSize: wp('7.5%'),
                                 color: '#EA4335',
+                                fontFamily: 'NotoSans-Regular',
+                                fontStyle: 'normal',
+                                textAlign: 'center'
                             }}>
-                            Thank you !
+                            Thank you!
                         </Text>
                     </View>
                     <View
@@ -263,10 +258,11 @@ class BLogin3 extends React.Component {
                                 marginTop: hp('2.5%'),
                                 fontSize: wp('5.8%'),
                                 color: 'black',
-                                fontFamily: 'Averia Serif Libre',
+                                fontFamily: 'NotoSans-Regular',
+                                fontStyle: 'normal',
                                 textAlign: 'center'
                             }}>
-                            Your business has been registered Succesfully.
+                            Your business has been registered Succesfully
                         </Text>
                         {/* <Text
                             style={{
@@ -287,23 +283,11 @@ class BLogin3 extends React.Component {
                         />
                     </View>
 
-                    {/* <View style={styles.bottomView}>
-                    <Button
-                        title="Download"
-                        onPress={this.download}
-                        containerStyle={styles.buttonContainer}
-                    />
-                    <Button
-                        title="View"
-                        onPress={this.view}
-                        containerStyle={styles.buttonContainer}
-                    />
-                </View> */}
-
                     <View style={{
                         alignItems: 'center',
                         justifyContent: 'center',
                     }}>
+                        {/* <Text style={{ color: '#2570EC', fontSize: wp('4.5%'), fontStyle: 'normal', fontFamily: 'Roboto_medium' }} >Download and print your QR Code</Text> */}
                         <TouchableOpacity
                             onPress={() => {
                                 // this.props.navigation.navigate('qrcode_scanner');
@@ -316,9 +300,10 @@ class BLogin3 extends React.Component {
                                 borderRadius: 50,
                                 justifyContent: 'center',
                                 alignItems: 'center',
-                                marginTop: hp('9%'),
+                                marginTop: hp('5%'),
+                                marginBottom: hp('9%')
                             }}>
-                            <Text style={{ color: '#FFFFFF', fontSize: wp('4%') }} >Download and print your QR</Text>
+                            <Text style={{ color: '#FFFFFF', fontSize: wp('4%') }} >Download and print QR code</Text>
                         </TouchableOpacity>
                     </View>
                 </ScrollView>

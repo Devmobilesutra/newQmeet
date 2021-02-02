@@ -8,6 +8,7 @@ import { TouchableHighlight } from 'react-native-gesture-handler';
 import ImagePicker from 'react-native-image-picker';
 import { v4 as uuidv4 } from 'uuid';
 import storage from '@react-native-firebase/storage';
+import App_Header1 from './Common_services/App_Header1'
 
 const options = {
     // title: 'Select Avatar',
@@ -31,11 +32,7 @@ class Profile_info extends React.Component {
         imagePath: require('../img/face1.jpg')
     }
 
-    componentDidMount() {
-
-        this.retrievData()
-        this.requestUserPermission()
-    }
+    componentDidMount() { this.retrievData() }
 
     componentWillUnmount() {
         this.setState({
@@ -51,19 +48,10 @@ class Profile_info extends React.Component {
         })
     }
 
-    async requestUserPermission() {
-        
-    }
-
     retrievData = async () => {
         const value = await AsyncStorage.getItem('@owner_number');
         console.log('own no', value)
-        this.setState({
-            mobileno: value
-        })
-        const data = await firestore().collection('user').doc(value).get()
-        console.log(data)
-        console.log(data.exists)
+        this.setState({ mobileno: value })
     }
     save_info = async () => {
 
@@ -78,12 +66,32 @@ class Profile_info extends React.Component {
                 mobile_no: this.state.mobileno,
                 imageurl: this.state.fs_imageurl,
                 user_token: this.state.user_token,
+            }).then(async (data) => {
+                // after adding data into user collection we will decide whether we r going to navigate user 
+                // either to Landing page or appointment display page.
+                console.log("IsAppExist ------------------------------------- ")
+                const isAppExist = await firestore().collection('appointment').where('user_mobileNo', '==', this.state.mobileno).get()
+                await AsyncStorage.setItem('@user_type', '1');// 1 for user and two for owner. by default all are users
+                console.log("isAppExist", isAppExist, " it is empty or not", isAppExist.empty)
+                if (isAppExist.empty) {
+
+                    console.log(await AsyncStorage.getItem('@user_type'))
+                    this.setState({ isLoading: false }, () => {
+                        this.props.navigation.navigate('Book_Appointment')
+                    })
+                } else {
+                    let owner_number;
+                    isAppExist.forEach( d => {
+                        owner_number = d.data().ownerId;
+                    })
+                    console.log(await AsyncStorage.getItem('@user_type'))
+                    this.setState({ isLoading: false }, () => {
+                        this.props.navigation.navigate('Customer_Ticket', { ownerId : owner_number })
+                    })
+                }
             })
-        await AsyncStorage.setItem('@user_type', '1');// 1 for user and two for owner. by default all are users
-        console.log(await AsyncStorage.getItem('@user_type'))
-        this.setState({ isLoading: false }, () => {
-            this.props.navigation.navigate('Book_Appointment')
-        })
+
+
     }
 
     setImage = () => {
@@ -99,8 +107,8 @@ class Profile_info extends React.Component {
                 console.log('User tapped custom button: ', response.customButton);
             } else {
                 const source = { uri: response.uri };
-                
-                if (source && response.fileSize <= 300000) {
+
+                if (source && response.fileSize <= 2000000) {
 
                     // code copied from https://www.pluralsight.com/guides/upload-images-to-firebase-storage-in-react-native
                     let path = this.getPlatformPath(response).value;
@@ -109,7 +117,7 @@ class Profile_info extends React.Component {
                     this.uploadImageToStorage(path, fileName);
 
                 } else {
-                    Alert.alert('File should be less than 300KBs')
+                    Alert.alert('File should be less than 2MBs')
                 }
             }
         });
@@ -163,100 +171,56 @@ class Profile_info extends React.Component {
 
     render() {
         return (
-            <SafeAreaView
-                style={{
-                    backgroundColor: 'white',
-                    flex: 1,
-                }}>
+            <SafeAreaView style={{ backgroundColor: 'white', flex: 1, }}>
                 <Modal transparent={true} visible={this.state.isLoading} >
                     <View style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
                         <ActivityIndicator color='#2570EC' size='large' style={{ alignSelf: 'center' }} />
                     </View>
                 </Modal>
-                <ScrollView>
-                    <Header style={{ backgroundColor: 'white', height: hp('8%') }} androidStatusBarColor='grey' >
-                        <Body style={{
-                            justifyContent: 'center',
-                            alignItems: 'center'
-                        }}>
-                            <Text
-                                style={{
-                                    fontSize: wp('5%'),
-                                    color: '#2570EC',
-                                    fontWeight: '700',
-                                    fontFamily: 'Averia Serif Libre',
-                                }}>
-                                Profile Info
-                            </Text>
-                        </Body>
-                    </Header>
-                    <View
-                        style={{
-                            paddingLeft: wp('5%'),
-                        }}>
-                        <Text
-                            style={{
-
-                                fontWeight: 'bold',
-                                fontSize: wp('3.5%'),
-                                color: '#343434',
-                                marginTop: hp('2%'),
-                            }}>
-                            Please enter your name and profile photo (optional)
-                        </Text>
-
-                        <View>
+                <Container>
+                    <Content>
+                        <App_Header1 Header_Name="Profile Info" />
+                        <Container style={styles.content}>
+                            <Text style={styles.inputTitle}> Enter name and select photo (optional) </Text>
                             <TextInput
                                 value={this.state.owners_Name}
                                 onChangeText={(owners_Name) => {
                                     this.setState({ owners_Name: owners_Name, disable: false })
                                 }}
                                 keyboardType="ascii-capable"
-                                // keyboardType="numeric"
                                 fontSize={30}
                                 style={{
-                                    // margin: hp('2%'),
                                     color: '#5F6368',
-                                    //height: 90,
-                                    width: wp('90%'),
                                     borderColor: 'blue',
                                     borderBottomWidth: 1.5,
-                                }}></TextInput>
-                        </View>
-                    </View>
-                    <View style={{
-                        marginTop: hp('10%'),
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                    }}>
-                        <TouchableHighlight onPress={() => { this.setImage() }}>
-                            <Thumbnail
-                             style={{ borderRadius: 100, height: hp('30%'), width: wp('55%'), }} 
-                             large source={this.state.avatarSource ? this.state.avatarSource  : require('../img/five.jpg')} />
-                        </TouchableHighlight>
-                    </View>
-                    <View
-                        style={{
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                        }}>
-                        <TouchableOpacity
-                            style={{
-                                backgroundColor: this.state.disable ? '#D3D3D3' : '#2570EC',
-                                width: wp('90%'),
-                                height: hp('7.5%'),
-                                borderRadius: 50,
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                marginTop: hp('14%'),
-                            }}
-                            disabled={this.state.disable}
-                            onPress={() => { this.save_info() }}
-                        >
-                            <Text style={{ color: 'white', fontSize: 14 }}>Use Qmeet</Text>
-                        </TouchableOpacity>
-                    </View>
-                </ScrollView>
+                                }} />
+
+                            <Content contentContainerStyle={{ marginTop: wp('20%'), justifyContent: 'center', alignItems: 'center' }}>
+                                <TouchableHighlight onPress={() => { this.setImage() }}>
+                                    <Thumbnail
+                                        style={{ borderRadius: 170, height: 170, width: 170 }}
+                                        large source={this.state.avatarSource ? this.state.avatarSource : require('../img/five.jpg')} />
+                                </TouchableHighlight>
+
+                                <TouchableOpacity
+                                    style={{
+                                        backgroundColor: this.state.disable ? '#D3D3D3' : '#2570EC',
+                                        width: wp('85%'),
+                                        height: hp('7.5%'),
+                                        borderRadius: 50,
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        marginTop: hp('14%'),
+                                    }}
+                                    disabled={this.state.disable}
+                                    onPress={() => { this.save_info() }}
+                                >
+                                    <Text style={{ color: 'white', fontSize: 14 }}>Use Qmeet</Text>
+                                </TouchableOpacity>
+                            </Content>
+                        </Container>
+                    </Content>
+                </Container>
             </SafeAreaView>
         );
     }
@@ -269,7 +233,18 @@ const styles = StyleSheet.create({
         width: '90%',
         height: hp('27%'),
     },
-
+    content: {
+        paddingLeft: hp('3%'),
+        paddingRight: hp('3%')
+    },
+    inputTitle: {
+        fontWeight: '500',
+        fontStyle: 'normal',
+        fontFamily: 'Roboto_medium',
+        fontSize: wp('3.5%'),
+        color: '#343434',
+        marginTop: hp('3%'),
+    },
     //////////////////////////////modal style///////////////////////////////
     overlay: {
         backgroundColor: 'rgba(0,0,0,0.2)',

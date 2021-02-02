@@ -2,8 +2,10 @@ import React, { Component } from 'react';
 import AsyncStorage from '@react-native-community/async-storage';
 import firestore from '@react-native-firebase/firestore';
 import { Container, Header, Title, Content, Footer, FooterTab, Left, Right, Body, Icon, Text, View, Card, CardItem, Tab, Tabs, TabHeading } from 'native-base';
-import { Button, StyleSheet, Modal, SafeAreaView, Image, TextInput, TouchableOpacity, Alert, } from 'react-native';
+import { ActivityIndicator, StyleSheet, Modal, SafeAreaView, Image, TextInput, TouchableOpacity, Alert, } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp, listenOrientationChange as lor, removeOrientationListener as rol, } from 'react-native-responsive-screen';
+import storage from '@react-native-firebase/storage';
+import RN_Icon from 'react-native-vector-icons/AntDesign';
 import moment from 'moment';
 import DatePicker from 'react-native-date-picker';
 import { Value } from 'react-native-reanimated';
@@ -21,39 +23,15 @@ class BLogin2 extends Component {
       app_end_time: '',
       date: new Date(),
       owner_number: '',
+      loader: false,
+      fs_imageurl: ''
     };
   }
 
   componentDidMount() {
-    this.asyncData()
-  }
-  asyncData = async () => {
-    const owner_number = await AsyncStorage.getItem('@owner_number')
-    this.setState({ owner_number })
-    await firestore()
-      .collection('owner')
-      .doc(owner_number)
-      .get()
-      .then(querySnapshop => {
-        console.log('user ID', querySnapshop.id)
-        console.log('owner data', querySnapshop.data())
-        let AST = querySnapshop.data().appointment_start_time
-        let AET = querySnapshop.data().appointment_end_time
-        let BST = querySnapshop.data().buisness_start_time
-        let BET = querySnapshop.data().buisness_end_time
-
-        // if (AST && AET && BST && BET) {
-        //   this.setState({
-        //     start_time: querySnapshop.data().buisness_start_time,
-        //     end_time: querySnapshop.data().buisness_end_time,
-        //     app_start_time: querySnapshop.data().appointment_start_time,
-        //     app_end_time: querySnapshop.data().appointment_end_time,
-        //   })
-        // }
-        // querySnapshop.forEach( doc => {
-        //   console.log('user ID', doc.id, doc.data())
-        // })
-      })
+    console.log('Image Path', this.props.route.params.imagePath)
+    console.log('Image Path', this.props.route.params.buisness_Name)
+    // this.asyncData()
   }
   /*..**************************appointment start Time******************************..*/
   open_appointment() {
@@ -153,20 +131,65 @@ class BLogin2 extends Component {
               console.log("Appointment end time", moment(this.state.app_end_time).format('hh:mm:ss a'))
               console.log("Buisness start time", moment(this.state.start_time).format('hh:mm:ss a'))
               console.log("Buisness end time", moment(this.state.end_time).format('hh:mm:ss a'))
-              console.log('owner number', this.state.owner_number)
-              const uploadtime = await firestore()
-                .collection('owner')
-                .doc(this.state.owner_number)
-                .update({
-                  buisness_start_time: this.state.start_time,
-                  buisness_end_time: this.state.end_time,
-                  appointment_start_time: this.state.app_start_time,
-                  appointment_end_time: this.state.app_end_time,
-                  Availablity: true
-                }).then(() => {
-                  console.log('your are registered succesfully')
-                  this.props.navigation.navigate('BLogin3')
-                })
+
+              this.setState({ loader: true });
+              let download_url
+              if (this.props.route.params.fileName) {
+                let reference = storage().ref(this.props.route.params.fileName);
+                let task = reference.putFile(this.props.route.params.imagePath);
+                task.then(async (response) => {
+                  console.log('Image uploaded to the bucket!');
+                  let download_url = await reference.getDownloadURL()
+
+                  firestore()
+                    .collection('owner')
+                    .doc(this.props.route.params.owner_number)
+                    .set({
+                      user_Id: this.props.route.params.userId,
+                      Buisness_name: this.props.route.params.buisness_Name,
+                      buisness_start_time: this.state.start_time,
+                      buisness_end_time: this.state.end_time,
+                      appointment_start_time: this.state.app_start_time,
+                      appointment_end_time: this.state.app_end_time,
+                      image_url: download_url ? download_url : '',
+                      Availablity: true
+                    }).then(async () => {
+                      console.log('your are registered succesfully')
+                      const setvalue = await AsyncStorage.setItem(
+                        '@user_type', '2' // 1 for user and two for owner. by default all are users
+                      );
+                      this.setState({ loader: false });
+                      this.props.navigation.navigate('BLogin3')
+                    })
+                }).catch((e) => {
+                  console.log('uploading image error => ', e);
+                  this.setState({ loader: false });
+                });
+              } else {
+                firestore()
+                  .collection('owner')
+                  .doc(this.props.route.params.owner_number)
+                  .set({
+                    user_Id: this.props.route.params.userId,
+                    Buisness_name: this.props.route.params.buisness_Name,
+                    buisness_start_time: this.state.start_time,
+                    buisness_end_time: this.state.end_time,
+                    appointment_start_time: this.state.app_start_time,
+                    appointment_end_time: this.state.app_end_time,
+                    image_url: download_url ? download_url : '',
+                    Availablity: true
+                  }).then(async () => {
+                    console.log('your are registered succesfully')
+                    const setvalue = await AsyncStorage.setItem(
+                      '@user_type', '2' // 1 for user and two for owner. by default all are users
+                    );
+                    this.setState({ loader: false });
+                    this.props.navigation.navigate('BLogin3')
+                  })
+              }
+
+              console.log('owner number', this.props.route.params.owner_number)
+              console.log('fs_imageurl', this.state.fs_imageurl)
             }
           } else {
             Alert.alert("Please select your Appointment end time")
@@ -184,45 +207,31 @@ class BLogin2 extends Component {
   render() {
     return (
       <Container>
+        <Modal transparent={true} visible={this.state.loader} >
+          <View style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+            <ActivityIndicator color='#2570EC' size='large' style={{ alignSelf: 'center' }} />
+          </View>
+        </Modal>
         {/* ------------------------- Header Bar ----------------------------------- */}
-        <Header style={{ backgroundColor: 'white', height: hp('8%') }} androidStatusBarColor='grey' >
-          <Left>
-            <TouchableOpacity
-              onPress={() => this.props.navigation.navigate('Book_Appointment')}
-            >
-              <Text style={{ fontSize: wp('6%') }}>  ←  </Text>
+        <Header style={styles.header_bg} androidStatusBarColor="grey">
+          <Left style={{ flex: 1 }}>
+            <TouchableOpacity onPress={() => { this.props.navigation.navigate('BLogin1') }}>
+              <RN_Icon name='arrowleft' size={30} color="#000" />
             </TouchableOpacity>
           </Left>
-          <Body>
-            <Text
-              numberOfLines={1}
-              style={{
-                textAlign: 'center',
-                marginLeft: wp('9%'),
-                marginRight: wp('-16%'),
-                fontSize: wp('5%'),
-                color: '#2570EC',
-                fontFamily: 'Averia Serif Libre',
-              }}>
-              Business sign-up
-            </Text>
+          <Body style={styles.Header_Body}>
+            <Title style={styles.Header_Name}>Business sign-up</Title>
           </Body>
-          <Right />
+          <Right style={{ flex: 1 }} />
         </Header>
         <Content padder>
-          <View
-            style={{
-              padding: 20
-            }}
-          >
-            <Text
-              style={{ fontSize: wp('6%'), fontWeight: '600', fontStyle: 'normal', fontFamily: 'Roboto' }}>
+          <View style={{ padding: 20 }}>
+            <Text style={{ fontSize: wp('6%'), fontWeight: '600', fontStyle: 'normal', fontFamily: 'Roboto' }}>
               Business time
-          </Text>
-            <Text
-              style={{ fontSize: wp('3.8%'), fontStyle: 'normal', fontFamily: 'NotoSans' }}>
+            </Text>
+            <Text style={{ fontSize: wp('3.8%'), fontStyle: 'normal', fontFamily: 'NotoSans' }}>
               Your daily business time
-          </Text>
+            </Text>
           </View>
           <CardItem style={{
             borderRadius: 8,
@@ -239,29 +248,27 @@ class BLogin2 extends Component {
               <Body
                 style={{
                   flexDirection: 'row',
-                  justifyContent: 'space-evenly',
+                  justifyContent: 'space-around',
                   alignItems: 'center',
                   width: '100%'
                 }}
               >
+                <View>
+                  <Text>Start Time</Text>
+                  <Text>{this.state.start_time ? moment(this.state.start_time).format('hh:mm:ss a') : '--:--'}</Text>
+                </View>
+                <View>
+                  <Text>End Time</Text>
+                  <Text>{this.state.end_time ? moment(this.state.end_time).format('hh:mm:ss a') : '--:--'}</Text>
+                </View>
                 <Text>
-                  Start Time {"\n"} {this.state.start_time ? moment(this.state.start_time).format('hh:mm:ss a') : '--:--'}
-                </Text>
-                <Text>
-                  End Time {"\n"} {this.state.end_time ? moment(this.state.end_time).format('hh:mm:ss a') : '--:--'}
-                </Text>
-                <Text>
-                  <Text style={{ fontSize: wp('6%'), }}> 〉  </Text>
+                  <RN_Icon name='right' size={25} color="#000" />
                 </Text>
               </Body>
             </TouchableOpacity>
           </CardItem>
-          <View
-            style={{
-              padding: 20
-            }}
-          >
-            <Text style={{ fontSize: wp('6%'), fontStyle: 'normal', fontFamily: 'Roboto' }}>
+          <View style={{ padding: 20 }}>
+            <Text numberOfLines={1} style={{ fontSize: wp('6%'), fontStyle: 'normal', fontFamily: 'Roboto' }}>
               Appointment booking time
             </Text>
             <Text style={{ fontSize: wp('3.8%'), fontWeight: '500', fontStyle: 'normal', fontFamily: 'NotoSans' }}>
@@ -280,19 +287,21 @@ class BLogin2 extends Component {
               <Body
                 style={{
                   flexDirection: 'row',
-                  justifyContent: 'space-evenly',
+                  justifyContent: 'space-around',
                   alignItems: 'center',
                   width: '100%'
                 }}
               >
+                <View>
+                  <Text>Start Time</Text>
+                  <Text>{this.state.app_start_time ? moment(this.state.app_start_time).format('hh:mm:ss a') : '--:--'} </Text>
+                </View>
+                <View>
+                  <Text>End Time</Text>
+                  <Text>{this.state.app_end_time ? moment(this.state.app_end_time).format('hh:mm:ss a') : '--:--'} </Text>
+                </View>
                 <Text>
-                  Start Time {"\n"} {this.state.app_start_time ? moment(this.state.app_start_time).format('hh:mm:ss a') : '--:--'}
-                </Text>
-                <Text>
-                  End Time {"\n"} {this.state.app_end_time ? moment(this.state.app_end_time).format('hh:mm:ss a') : '--:--'}
-                </Text>
-                <Text>
-                  <Text style={{ fontSize: wp('6%'), }}>  〉  </Text>
+                  <RN_Icon name='right' size={25} color="#000" />
                 </Text>
               </Body>
             </TouchableOpacity>
@@ -332,11 +341,11 @@ class BLogin2 extends Component {
                 <View style={styles.container2}>
                   <Tabs hasTabs>
                     <Tab
-
                       heading="Start Time"
                       activeTabStyle={{ backgroundColor: '#FFFFFF' }}
                       activeTextStyle={{ color: '#2570EC' }}
-                      tabStyle={{ backgroundColor: '#2570EC' }}
+                      tabStyle={{ backgroundColor: '#2570EC', elevation: 0 }}
+                    // tabContainerStyle={{ elevation: 0 }}
                     >
                       <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: hp('5%'), }}>
                         <DatePicker
@@ -573,6 +582,30 @@ class BLogin2 extends Component {
 }
 
 const styles = StyleSheet.create({
+  header_bg: {
+    backgroundColor: "#FFFFFF",
+    elevation: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: '#D4D4D4',
+    marginLeft: 10,
+    marginRight: 10
+  },
+  Header_Body: {
+    flex: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  Header_Name: {
+    fontFamily: 'NotoSans-Regular',
+    color: '#2570EC',
+    fontSize: 20,
+    fontStyle: 'normal',
+    fontWeight: '700'
+  },
+  content: {
+    padding: 20
+  },
   //////////////////////////////modal style///////////////////////////////
   overlay: {
     backgroundColor: 'rgba(0,0,0,0.2)',

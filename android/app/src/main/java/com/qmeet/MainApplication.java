@@ -1,4 +1,4 @@
-package com.queue;
+package com.qmeet;
 
 import android.app.Application;
 import android.content.Context;
@@ -16,6 +16,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import androidx.multidex.MultiDexApplication;
 import com.christopherdro.htmltopdf.RNHTMLtoPDFPackage;
+import com.oblador.vectoricons.VectorIconsPackage;
 
 public class MainApplication extends MultiDexApplication implements ReactApplication {
 

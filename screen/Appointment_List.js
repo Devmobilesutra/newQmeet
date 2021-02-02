@@ -1,15 +1,17 @@
 import React, { Component } from 'react';
-import { BackHandler, StyleSheet, View, SafeAreaView, Image, TextInput, TouchableOpacity, Modal, Alert, PanResponder, ActivityIndicator } from 'react-native';
+import { BackHandler, StyleSheet, View, SafeAreaView, ScrollView, Image, ImageBackground, TextInput, TouchableOpacity, Modal, Alert, PanResponder, ActivityIndicator } from 'react-native';
 import { Container, Header, Content, List, ListItem, Thumbnail, Text, Left, Body, Right, Button, Icon, Fab, } from 'native-base';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp, listenOrientationChange as lor, removeOrientationListener as rol, } from 'react-native-responsive-screen';
 import firestore from '@react-native-firebase/firestore';
 import functions from '@react-native-firebase/functions';
 import moment from 'moment'
-import { FlatList, ScrollView } from 'react-native-gesture-handler';
 import AsyncStorage from '@react-native-community/async-storage';
 import _ from 'lodash';
 import Axios from 'axios';
 import DraggableFlatList from 'react-native-draggable-flatlist';
+import RN_Icon from 'react-native-vector-icons/Ionicons';
+import RN_Icon1 from 'react-native-vector-icons/AntDesign';
+import ActionButton from 'react-native-action-button';
 
 const styles = StyleSheet.create({
 
@@ -33,6 +35,10 @@ const styles = StyleSheet.create({
         marginBottom: 15,
         textAlign: 'center',
     },
+    header_bg: {
+        backgroundColor: "#FFFFFF",
+        elevation: 0,
+    }
 });
 
 class Appointment_List extends React.Component {
@@ -51,6 +57,7 @@ class Appointment_List extends React.Component {
             dropIndex: 0,
             oldList: [],
             direction: true,
+            EditFlag: false
         }
     }
 
@@ -69,7 +76,7 @@ class Appointment_List extends React.Component {
                     data.forEach((element) => {
                         console.log(element.data());
                         console.log(element.id);
-                        delete element.data().timestamp; // temporarily delete ... some issue
+                        //delete element.data().timestamp; // temporarily delete ... some issue
                         appointment_data.push({
                             firebaseRef: element,
                             id: element.id,
@@ -207,43 +214,48 @@ class Appointment_List extends React.Component {
                 );
             })
     }
-    add_Appointment() {
+    async add_Appointment() {
         this.setState({ loader: true })
-        console.log(" \n here we are to add customer")
+        console.log(" \n here we are to add customer", this.state.customer_name);
+        const { EditFlag, customer_number } = this.state;
+        console.log("edit flag", EditFlag)
+        if (EditFlag) {
+            this.EditAppointment();
+            return;
+        }
 
-        const addAppointment = functions().httpsCallable('offline_appointment');
-        addAppointment({
+        const existingUser = await firestore().collection('user').where('mobile_no', '==', customer_number).get();
+        if(existingUser.empty) {
+            var userId = null;
+            var user_token = null;
+            var user_image = null;            
+        } else {
+            existingUser.forEach( d => {
+                console.log("data of usre",d)
+                userId = d.id;
+                user_token = d.data().user_token;
+                user_image = d.data().imageurl;
+            });
+        }
+        const online_appointment1 = functions().httpsCallable('online_appointment1');
+        online_appointment1({
+            appointment_mode: false,
             ownerId: this.state.async_ownerNo,
+            userId: userId,
             user_number: this.state.customer_number,
             userName: this.state.customer_name,
-            owner_token: this.state.owner_token,
+            owner_token: null,
+            user_token: user_token,
+            user_image: user_image,
+            appointment_mode: false
+        }).then(data => {
+            console.log(" indian time will be ", data)
+            this.setState({ loader: false, customer_name: '', customer_number: '', modalVisible: false });
+        }).catch(err => {
+            console.error(" errrrrrrr", err);
+            this.setState({ loader: false, customer_name: '', customer_number: '' });
         })
-            .then(snap => {
-                this.setState({
-                    customer_name: '',
-                    customer_number: '',
-                    modalVisible: false,
-                })
-                console.log(snap)
-                this.setState({ loader: false })
-            })
-            .catch(error => {
-                Alert.alert('Problem occured while setting an Appointment :' + error)
-                Alert.alert(
-                    "",
-                    "Problem occured while setting an Appointment, Check your internet :",
-                    [
-                        {
-                            text: "OK", onPress: () => {
-                                this.setState({ loader: false })
-                            }
-                        }
-                    ],
-                    { cancelable: false }
-                );
-            })
     }
-
     validate() {
 
         console.log(this.state.customer_number.length)
@@ -260,69 +272,133 @@ class Appointment_List extends React.Component {
         }
         else {
             // if validations are true owner will be able to add appointments
-            console.log('calling add appointment');
+            console.log('calling add appointment', this.state.customer_number);
             try {
                 const url = 'http://mobilesutra.com/Fintelekt-Dashboard/service/User/Send_sms';
                 let formData = new FormData();
-                // formData.append("contact_number", toString(this.state.mobileNo));
-                // formData.append("sms_text", "playstore link to send to user");
 
                 const config = {
                     //   headers: { 'content-type': 'multipart/form-data' }
                 }
 
-                console.log("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh:", typeof (this.state.customer_number), this.state.mobileNo)
+                console.log("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh:", typeof (this.state.customer_number), this.state.customer_number)
                 let sms_data = {
                     "contact_number": this.state.customer_number,
-                    "sms_text": "Testing in this mesage include playstore link to download app"
+                    "sms_text": "Please install QMeet App from this link "
                 }
                 Axios.post(url, JSON.stringify(sms_data), config)
                     .then(response => {
-                        console.log(response.data)
-                    })
+                        console.log("mystatus", response.data)
+                    });
             } catch (err) {
-                console.log(err)
+                console.log("API Message sending Error", err)
             }
             this.add_Appointment()
         }
     }
 
+    deleteAlert(app_number) {
+        Alert.alert(
+            "",
+            "do you want to remove this booking",
+            [
+                {
+                    color: '#fff',
+                    text: "Yes",
+                    onPress: () => this.complete_appointmnet(app_number),
+                    style: "cancel",
+                },
+                {
+                    text: "No", onPress: () => { null }
+                }
+            ],
+            { cancelable: false }
+        );
+    }
+    Alert_removeAllAppointment() {
+        Alert.alert(
+            "",
+            "Do you want to remove all appointments",
+            [
+                {
+                    color: '#fff',
+                    text: "Yes",
+                    onPress: () => this.removeAllAppointment(),
+                    style: "cancel",
+                },
+                {
+                    text: "No", onPress: () => { null }
+                }
+            ],
+            { cancelable: false }
+        );
+    }
+    async removeAllAppointment() {
+        console.table("list to delete appointments", this.state.listArray);
+        const { listArray } = this.state;
+        listArray.forEach(async (d) => {
+            console.log("item id ", d.id);
+            await firestore().collection('appointment').doc(d.id).delete()
+                .then(data => { console.log('Data deleted') })
+                .catch(err => { console.log(" Error ocuured while deleteing data", err) })
+        })
+    }
+    edit_walkIn_Customer(Name, Number, Id) {
+        console.log("edit_walkIn_Customer")
+        this.setState({ customer_name: Name, customer_number: Number, EditFlag: true, modalVisible: true, edit_Id: Id });
+    }
+    async EditAppointment() {
+        const { edit_Id, customer_name, customer_number } = this.state;
+        await firestore().collection('appointment').doc(edit_Id).update({
+            user_name: customer_name,
+            user_mobileNo: customer_number
+        }).then(data => { this.setState({ modalVisible: false, EditFlag: false, customer_name: '', customer_number: '', loader: false }) })
+            .catch(error => { console.error(error); this.setState({ modalVisible: false, EditFlag: false, customer_name: '', customer_number: '', loader: false }) });
+    }
     renderItemDrag = ({ item, index, drag, isActive }) => {
         console.log(isActive);
         return (
-            <ListItem
-                thumbnail
-                onLongPress={drag}
-                style={{ backgroundColor: isActive ? '#EEE8' : '#0000' }}>
-                <Left>
-                    <Text style={{ fontWeight: 'bold' }}>{item.Appointment_No}</Text>
-                    {/* {console.log(item.Appointment_No)} */}
-                    <Thumbnail
-                        source={require('../img/face1.jpg')}
-                    />
-                </Left>
-                <Body>
-                    <Text>{item.user_name}</Text>
-                    <Text note numberOfLines={1}>
-                        {item.user_mobileNo}
-                    </Text>
-                </Body>
-                <Right
-                    style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                    }}>
-                    <Button transparent>
-                        <Text style={{ fontSize: 12 }}>
-                            {item.timestamp ? item.timestamp : null}
+            <ScrollView>
+                <ListItem
+                    avatar
+                    noBorder
+                    onPress={() => { item.appointment_mode == false ? this.edit_walkIn_Customer(item.user_name, item.user_mobileNo, item.id) : null }}
+                    onLongPress={drag}
+                    style={{ backgroundColor: isActive ? '#EEE8' : '#0000', borderBottomWidth: 1, borderColor: '#E4E4E4' }}>
+                    <Left style={{ justifyContent: 'space-around' }}>
+                        <Text style={{
+                            fontWeight: 'bold',
+                            color: item.appointment_mode == false ? '#EA4335' : 'black'
+                        }}>{item.Appointment_No}</Text>
+                        <Thumbnail
+                            source={item.user_image ? { uri: item.user_image } : require('../img/face1.jpg')}
+                        />
+                    </Left>
+                    <Body noBorder>
+                        <Text numberOfLines={1}>{item.user_name}</Text>
+                        <Text note numberOfLines={1}>
+                            {item.user_mobileNo}
                         </Text>
-                    </Button>
-                    <Button bordered onPress={() => this.complete_appointmnet(item.id)}>
-                        <Text>Done</Text>
-                    </Button>
-                </Right>
-            </ListItem>
+                    </Body>
+                    <Right
+                        noBorder
+                        style={{
+                            flexDirection: 'column',
+                            justifyContent: 'space-evenly',
+                            alignItems: 'flex-end',
+                            overflow: 'hidden'
+                        }}>
+                        <Text style={{ color: '#6B6B6B', textAlign: 'right', fontFamily: 'Roboto_medium', fontSize: 13, fontStyle: 'normal', fontWeight: '400' }}>
+                            {item.timestamp ? moment(new Date(item.timestamp.seconds * 1000 + item.timestamp.nanoseconds / 1000000)).format('hh:mm A') : null}
+                        </Text>
+                        <Button
+                            style={{ backgroundColor: '#2570EC', borderRadius: 4, width: 83, height: 30, justifyContent: 'center', alignItems: 'center' }}
+                            onPress={() => this.deleteAlert(item.id)}>
+                            <Text style={{ fontFamily: 'Roboto_medium', fontWeight: '700', fontStyle: 'normal', fontSize: 13 }}>Done</Text>
+                        </Button>
+                    </Right>
+                </ListItem>
+            </ScrollView>
         );
     };
     render() {
@@ -338,36 +414,16 @@ class Appointment_List extends React.Component {
                     {/* ------------------------- Header Bar ----------------------------------- */}
                     <Header style={{ backgroundColor: 'white', height: hp('8%') }} androidStatusBarColor='grey' >
                         <Left>
-                            <TouchableOpacity
-                                onPress={() => this.props.navigation.navigate('profile_details_2')}
-                            >
-                                <Text style={{ fontSize: wp('6%') }}>  ☰  </Text>
+                            <TouchableOpacity onPress={() => { this.props.navigation.navigate('profile_details_2') }}>
+                                <RN_Icon name="menu" size={30} color="#000000" />
                             </TouchableOpacity>
                         </Left>
-                        <Body >
-                            <Text
-                                style={{
-                                    marginLeft: wp('16%'),
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    fontSize: wp('6%'),
-                                    color: '#EA4335',
-                                    fontFamily: 'Averia Serif Libre',
-                                }}>
-                                Q
-                                <Text
-                                    style={{
-                                        fontSize: wp('7%'),
-                                        color: '#5F6368',
-                                        fontFamily: 'Averia Serif Libre',
-                                    }}>
-                                    meet
-                                </Text>
-                            </Text>
+                        <Body style={{ position: 'relative', marginLeft: wp('-30%'), justifyContent: 'center', alignItems: 'center' }}>
+                            <Image style={{ width: 79, height: 36 }} source={require('../Assets/Group_31.jpg')} />
                         </Body>
-                        <Right />
                     </Header>
                     <DraggableFlatList
+                        style={{ backgroundColor: 'white', borderColor: '#E4E4E4', borderTopWidth: 1 }}
                         data={listArray}
                         renderItem={this.renderItemDrag}
                         onDragBegin={(e) => {
@@ -396,16 +452,42 @@ class Appointment_List extends React.Component {
                     />
                     {/* ------------------------------------------ Fab Button ------------------------------------ */}
                     <TouchableOpacity
-                        style={{ width: wp('20.9%'), height: hp('11.7%'), borderRadius: 50, alignSelf: 'flex-end', margin: wp('7%') }}
+                        // activeOpacity={0.5}
+                        style={{
+                            opacity: 0.9,
+                            position: 'absolute',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            right: 30, bottom: 30,
+                            // width: 80,height: 80,
+                            // borderRadius: 50,
+                            backgroundColor: 'white',
+                            // color: 'red'
+                        }}
                         onPress={() => {
                             this.setState({
                                 modalVisible: true
                             })
                         }}
                     >
-                        <Image
-                            style={{ width: wp('20.9%'), height: hp('11.7%'), borderRadius: 50 }}
-                            source={require('../img/imageonline-co-overlayed-image.png')} />
+                        <ImageBackground source={require('../Assets/Plus_btn.png')} style={{ width: 60, height: 60, borderRadius: 50, backgroundColor: '#FFFFFF' }}></ImageBackground>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        // activeOpacity={0.5}
+                        style={{
+                            opacity: 0.9,
+                            position: 'absolute',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            left: 30, bottom: 30,
+                            // width: 80,height: 80,
+                            // borderRadius: 50,
+                            backgroundColor: 'white',
+                            // color: 'red'
+                        }}
+                        onPress={() => { this.Alert_removeAllAppointment() }}>
+                        <ImageBackground source={require('../Assets/deleteAllIcon.png')} style={{ width: 60, height: 60, borderRadius: 50, backgroundColor: '#FFFFFF' }}></ImageBackground>
                     </TouchableOpacity>
                     {/* ------------------------------- Modal To add appointment from owner Side ------------------------------------------ */}
                     <Modal
@@ -416,7 +498,7 @@ class Appointment_List extends React.Component {
                             // Alert.alert('Modal has been closed.');
                             this.setState({ modalVisible: false })
                         }}>
-                        <View style={styles.overlay}>
+                        <Content contentContainerStyle={styles.overlay}>
                             <View style={styles.container2}>
                                 <Text
                                     style={{ fontWeight: 'bold', marginTop: hp('4%') }}>
@@ -453,7 +535,7 @@ class Appointment_List extends React.Component {
                                 />
                                 <Body style={{
                                     flexDirection: 'row',
-                                    justifyContent: 'space-evenly',
+                                    justifyContent: 'space-between',
                                     alignItems: 'center',
                                     // marginTop: hp('3%'),
                                 }}>
@@ -462,14 +544,16 @@ class Appointment_List extends React.Component {
                                             borderWidth: 1,
                                             borderColor: '#2570EC',
                                             borderRadius: 24,
-                                            height: 50,
-                                            width: 150,
+                                            height: hp('7%'),
+                                            width: wp('40%'),
                                             justifyContent: 'center',
                                             alignItems: 'center',
                                         }}
                                         onPress={() => {
                                             this.setState({
-                                                modalVisible: false
+                                                modalVisible: false,
+                                                customer_name: "",
+                                                customer_number: ""
                                             })
                                         }}
                                     >
@@ -480,8 +564,8 @@ class Appointment_List extends React.Component {
                                             marginLeft: wp('4%'),
                                             backgroundColor: this.state.customer_number.length == 10 && this.state.customer_name != '' ? '#2570EC' : '#808080',
                                             borderRadius: 24,
-                                            height: 50,
-                                            width: 150,
+                                            height: hp('7%'),
+                                            width: wp('40%'),
                                             justifyContent: 'center',
                                             alignItems: 'center',
                                         }}
@@ -491,9 +575,8 @@ class Appointment_List extends React.Component {
                                         <Text style={{ color: '#FFFFFF' }}>Add Customer</Text>
                                     </TouchableOpacity>
                                 </Body>
-
                             </View>
-                        </View>
+                        </Content>
                     </Modal>
                 </SafeAreaView>
             </>

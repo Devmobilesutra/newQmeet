@@ -3,7 +3,7 @@ require_relative '../node_modules/@react-native-community/cli-platform-ios/nativ
 
 platform :ios, '10.0'
 
-target 'queue' do
+target 'Qmeet' do
   config = use_native_modules!
 
   use_react_native!(:path => config["reactNativePath"])
@@ -17,7 +17,7 @@ target 'queue' do
 
   pod 'react-native-image-picker', :path => '../node_modules/react-native-image-picker'
 
-  target 'queueTests' do
+  target 'QmeetTests' do
     inherit! :complete
     # Pods for testing
   end
@@ -32,10 +32,10 @@ target 'queue' do
   end
 end
 
-target 'queue-tvOS' do
-  # Pods for queue-tvOS
+target 'Qmeet-tvOS' do
+  # Pods for Qmeet-tvOS
 
-  target 'queue-tvOSTests' do
+  target 'Qmeet-tvOSTests' do
     inherit! :search_paths
     # Pods for testing
   end

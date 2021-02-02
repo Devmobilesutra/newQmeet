@@ -4,10 +4,12 @@ import firestore from '@react-native-firebase/firestore';
 import { Container, Header, Title, Content, Footer, FooterTab, Left, Right, Body, Icon, Text, View, Card, CardItem, Tab, Tabs, TabHeading, Thumbnail } from 'native-base';
 import { BackHandler, ActivityIndicator, StyleSheet, Modal, SafeAreaView, Image, TextInput, TouchableOpacity, Alert, TouchableHighlight } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp, listenOrientationChange as lor, removeOrientationListener as rol, } from 'react-native-responsive-screen';
+import RN_Icon from 'react-native-vector-icons/AntDesign';
 import moment from 'moment';
 import ImagePicker from 'react-native-image-picker';
 import DatePicker from 'react-native-date-picker';
 import storage from '@react-native-firebase/storage';
+import { ImageBackground } from 'react-native';
 
 class EditBuisness extends Component {
 
@@ -27,6 +29,7 @@ class EditBuisness extends Component {
       avatarSource: '',
       fs_imageurl1: '',
       isLoading: false,
+
     };
   }
 
@@ -54,7 +57,7 @@ class EditBuisness extends Component {
       } else {
         const source = { uri: response.uri };
 
-        if (source && response.fileSize <= 300000) {
+        if (source && response.fileSize <= 2000000) {
 
           // code copied from https://www.pluralsight.com/guides/upload-images-to-firebase-storage-in-react-native
           let path = this.getPlatformPath(response).value;
@@ -63,7 +66,7 @@ class EditBuisness extends Component {
           this.uploadImageToStorage(path, fileName);
 
         } else {
-          Alert.alert('File should be less than 300KBs')
+          Alert.alert('File should be less than 2MBs')
         }
       }
     });
@@ -285,11 +288,24 @@ class EditBuisness extends Component {
           if (this.state.app_start_time) {
 
             if (this.state.app_end_time) {
-              if (Date(this.state.app_end_time.seconds * 1000 + this.state.app_end_time.nanoseconds / 1000000) > Date(this.state.end_time.seconds * 1000 + this.state.end_time.nanoseconds / 1000000)) {
-                console.log('ggggjwke.ds nIUGBRkjvihugrkn .djclmIJhu:dv acmlIJOe:whhhhhhmKLDWIOEJWURH')
+              var end_time;
+              var app_end_time;
+              if(moment(new Date(this.state.end_time.seconds * 1000 + this.state.end_time.nanoseconds / 1000000)).format('hh:mm:ss a') != 'Invalid date') {
+                end_time = new Date(this.state.end_time.seconds * 1000 + this.state.end_time.nanoseconds / 1000000)
+              } else {
+                end_time = this.state.end_time
+              }
+              if(moment(new Date(this.state.app_end_time.seconds * 1000 + this.state.app_end_time.nanoseconds / 1000000)).format('hh:mm:ss a') != 'Invalid date') {
+                app_end_time = new Date(this.state.app_end_time.seconds * 1000 + this.state.app_end_time.nanoseconds / 1000000)
+              } else {
+                app_end_time = this.state.app_end_time
+              }
+              if (app_end_time.getTime() > end_time.getTime()) {
+                console.log('Appointment End time should be less than Buisness End Time')
                 Alert.alert('Appointment End time should be less than Buisness End Time')
               } else {
-
+                console.log("data format", this.state.app_end_time)
+                console.log("what is it", new Date(this.state.app_end_time).getTime() > new Date(this.state.app_start_time).getTime())
                 console.log("Appointment start time", moment(this.state.app_start_time).format('hh:mm:ss a'))
                 console.log("Appointment end time", moment(this.state.app_end_time).format('hh:mm:ss a'))
                 console.log("Buisness start time", moment(this.state.start_time).format('hh:mm:ss a'))
@@ -305,7 +321,7 @@ class EditBuisness extends Component {
                     buisness_end_time: this.state.end_time,
                     appointment_start_time: this.state.app_start_time,
                     appointment_end_time: this.state.app_end_time,
-                    image_url: this.state.fs_imageurl1,
+                    image_url: this.state.fs_imageurl1 ? this.state.fs_imageurl1 : this.state.avatarSource,
                     Availablity: true
                   }).then(() => {
                     console.log('your are registered succesfully')
@@ -336,40 +352,27 @@ class EditBuisness extends Component {
             <ActivityIndicator color='#2570EC' size='large' style={{ alignSelf: 'center' }} />
           </View>
         </Modal>
-        <Header style={{ backgroundColor: 'white', height: hp('8%') }} androidStatusBarColor='grey' >
-          <Left>
-            <TouchableOpacity
-              onPress={() => this.props.navigation.navigate('profile_details_2')}
-            >
-              <Text style={{ fontSize: wp('6%') }}>  ←  </Text>
+        <Header style={styles.header_bg} androidStatusBarColor="grey">
+          <Left style={{ flex: 1 }}>
+            <TouchableOpacity onPress={() => { this.props.navigation.navigate('profile_details_2') }}>
+              <RN_Icon name='arrowleft' size={30} color="#000" />
             </TouchableOpacity>
           </Left>
-          <Body style={{
-            // justifyContent: 'center',
-            // alignItems: 'center'
-          }}>
-            <Text
-              style={{
-                fontSize: wp('4%'),
-                color: '#2570EC',
-                fontWeight: '700',
-                fontFamily: 'Averia Serif Libre',
-              }}>
-              Edit Business Details
-            </Text>
+          <Body style={styles.Header_Body}>
+            <Title style={styles.Header_Name}>Edit Buisness Details</Title>
           </Body>
+          <Right style={{ flex: 1 }} />
         </Header>
-        <Content padder>
-          <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-            <TouchableHighlight onPress={() => { this.setImage() }}>
-              <Thumbnail
-                style={{ borderRadius: 100, height: hp('30%'), width: wp('55%'), }}
-                large source={this.state.avatarSource ? { uri: this.state.avatarSource } : require('../img/face1.jpg')} />
-            </TouchableHighlight>
-            {this.state.avatarSource ? <Text> image already uploaded</Text> : null}
-          </View>
+        <Content>
+          <TouchableHighlight onPress={() => { this.setImage() }} style={{ alignItems: 'center', justifyContent: 'center' }}>
+            <ImageBackground style={{ width: wp('100%'), height: 250, zIndex: 900, backgroundColor: 'grey', justifyContent: 'center', alignItems: 'center' }} source={this.state.avatarSource ? { uri: this.state.avatarSource } : require('../img/b1.jpg')} >
+              <View style={{ width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.4)' }}>
+                <Text style={{ color: 'white', textAlign: 'center' }}> click here to select New shop Profile</Text>
+              </View>
+            </ImageBackground>
+          </TouchableHighlight>
 
-          <View style={{ margin: wp('0.5%') }}>
+          <View style={{ margin: wp('0.5%'), marginTop: 20 }}>
             <Text style={{
               marginLeft: hp('2%'),
               marginRight: hp('2%')
@@ -401,15 +404,26 @@ class EditBuisness extends Component {
           </View>
           <CardItem style={{ borderRadius: 8, borderWidth: 1, borderColor: '#BDBDBD', height: hp('12%'), marginBottom: hp('5%'), }}>
             <TouchableOpacity onPress={() => { this.start_buisness_time() }}>
-              <Body style={{ flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', width: '100%' }} >
+              <Body style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', width: '100%' }} >
+                <View>
+                  <Text>Start Time</Text>
+                  <Text>
+                    {this.state.start_time ?
+                      moment(new Date(this.state.start_time.seconds * 1000 + this.state.start_time.nanoseconds / 1000000)).format('hh:mm:ss a') == 'Invalid date' ? moment(this.state.start_time).format('hh:mm:ss a')
+                        : moment(new Date(this.state.start_time.seconds * 1000 + this.state.start_time.nanoseconds / 1000000)).format('hh:mm:ss a')
+                      : '--:--'}
+                  </Text>
+                </View>
+                <View>
+                  <Text>End Time</Text>
+                  <Text>
+                    {this.state.end_time ?
+                      moment(new Date(this.state.end_time.seconds * 1000 + this.state.end_time.nanoseconds / 1000000)).format('hh:mm:ss a') == 'Invalid date' ? moment(this.state.end_time).format('hh:mm:ss a') : moment(new Date(this.state.end_time.seconds * 1000 + this.state.end_time.nanoseconds / 1000000)).format('hh:mm:ss a')
+                      : '--:--'}
+                  </Text>
+                </View>
                 <Text>
-                  Start Time {"\n"} {this.state.start_time ? moment(new Date(this.state.start_time.seconds * 1000 + this.state.start_time.nanoseconds / 1000000)).format('hh:mm:ss a') : '--:--'}
-                </Text>
-                <Text>
-                  End Time {"\n"} {this.state.end_time ? moment(new Date(this.state.end_time.seconds * 1000 + this.state.end_time.nanoseconds / 1000000)).format('hh:mm:ss a') : '--:--'}
-                </Text>
-                <Text>
-                  <Text style={{ fontSize: wp('6%'), }}> 〉  </Text>
+                  <RN_Icon name='right' size={25} color="#000" />
                 </Text>
               </Body>
             </TouchableOpacity>
@@ -424,22 +438,32 @@ class EditBuisness extends Component {
           </View>
           <CardItem style={{ borderRadius: 8, borderWidth: 1, borderColor: '#BDBDBD', height: hp('12%'), }}>
             <TouchableOpacity onPress={() => { this.open_appointment() }}>
-              <Body style={{ flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', width: '100%' }}>
+              <Body style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', width: '100%' }}>
+                <View>
+                  <Text>Start Time</Text>
+                  <Text>
+                    {this.state.app_start_time ?
+                      moment(new Date(this.state.app_start_time.seconds * 1000 + this.state.app_start_time.nanoseconds / 1000000)).format('hh:mm:ss a') == 'Invalid date' ? moment(this.state.app_start_time).format('hh:mm:ss a') : moment(new Date(this.state.app_start_time.seconds * 1000 + this.state.app_start_time.nanoseconds / 1000000)).format('hh:mm:ss a')
+                      : '--:--'}
+                  </Text>
+                </View>
+                <View>
+                  <Text>End Time</Text>
+                  <Text>
+                    {this.state.app_end_time ?
+                      moment(new Date(this.state.app_end_time.seconds * 1000 + this.state.app_end_time.nanoseconds / 1000000)).format('hh:mm:ss a') == 'Invalid date' ? moment(this.state.app_end_time).format('hh:mm:ss a') : moment(new Date(this.state.app_end_time.seconds * 1000 + this.state.app_end_time.nanoseconds / 1000000)).format('hh:mm:ss a')
+                      : '--:--'}
+                  </Text>
+                </View>
                 <Text>
-                  Start Time {"\n"} {this.state.app_start_time ? moment(new Date(this.state.app_start_time.seconds * 1000 + this.state.app_start_time.nanoseconds / 1000000)).format('hh:mm:ss a') : '--:--'}
-                </Text>
-                <Text>
-                  End Time {"\n"} {this.state.app_end_time ? moment(new Date(this.state.app_end_time.seconds * 1000 + this.state.app_end_time.nanoseconds / 1000000)).format('hh:mm:ss a') : '--:--'}
-                </Text>
-                <Text>
-                  <Text style={{ fontSize: wp('6%'), }}>  〉  </Text>
+                  <RN_Icon name='right' size={25} color="#000" />
                 </Text>
               </Body>
             </TouchableOpacity>
           </CardItem>
           <View style={{ justifyContent: 'center', alignItems: 'center' }}>
             <TouchableOpacity onPress={() => { this.signUp() }}
-              style={{ backgroundColor: '#2570EC', width: wp('90%'), height: hp('7.5%'), borderRadius: 50, justifyContent: 'center', alignItems: 'center', marginTop: hp('7%'), }}>
+              style={{ backgroundColor: '#2570EC', width: wp('90%'), height: hp('7.5%'), borderRadius: 50, justifyContent: 'center', alignItems: 'center', marginTop: hp('7%'), marginBottom: hp('7%') }}>
               <Text style={{ color: '#FFFFFF' }}>Sign Up</Text>
             </TouchableOpacity>
           </View>
@@ -712,6 +736,27 @@ const styles = StyleSheet.create({
   },
   activeTabTextStyle: {
     color: 'red'
+  },
+  header_bg: {
+    backgroundColor: "#FFFFFF",
+    elevation: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: '#D4D4D4',
+    marginLeft: 10,
+    marginRight: 10
+  },
+  Header_Body: {
+    flex: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  Header_Name: {
+    fontFamily: 'NotoSans-Regular',
+    color: '#2570EC',
+    fontSize: 16,
+    fontStyle: 'normal',
+    fontWeight: '700'
   }
 })
 export default EditBuisness;

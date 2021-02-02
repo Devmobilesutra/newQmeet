@@ -1,18 +1,47 @@
 import AsyncStorage from '@react-native-community/async-storage';
 import firestore from '@react-native-firebase/firestore';
 import React, { Component } from 'react';
-import { StyleSheet, View, Text, SafeAreaView, Image, TextInput, TouchableOpacity, Alert, TouchableHighlight, Modal, ActivityIndicator, BackHandler } from 'react-native';
+import { StyleSheet, View, Text, SafeAreaView, TextInput, TouchableOpacity, Alert, TouchableHighlight, Modal, ActivityIndicator, BackHandler } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp, listenOrientationChange as lor, removeOrientationListener as rol, } from 'react-native-responsive-screen';
-import { Container, Header, Title, Content, Footer, FooterTab, Button, Left, Right, Body, Icon } from 'native-base';
-import { Thumbnail } from 'native-base';
-import storage from '@react-native-firebase/storage';
+import { Container, Header, Title, Content, Left, Right, Body } from 'native-base';
 import ImagePicker from 'react-native-image-picker';
+import RN_Icon from 'react-native-vector-icons/Ionicons';
+import { ImageBackground } from 'react-native';
 
 const options = {
-    title: 'my pic app',
-    takePhotoButtonTitle: 'Take photo with your camera',
-    chooseFromLibraryButtonTitle: 'Choose photo from library',
-}
+    // title: 'Select Avatar',
+    // storageOptions: {
+    //     noData: true
+    // },
+    noData: true
+};
+
+const styles = StyleSheet.create({
+    header_bg: {
+        backgroundColor: "#FFFFFF",
+        elevation: 0,
+        borderBottomWidth: 1,
+        borderBottomColor: '#D4D4D4',
+        marginLeft: 10,
+        marginRight: 10
+    },
+    Header_Body: {
+        flex: 4,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#FFFFFF',
+    },
+    Header_Name: {
+        fontFamily: 'NotoSans-Regular',
+        color: '#2570EC',
+        fontSize: 20,
+        fontStyle: 'normal',
+        fontWeight: '700'
+    },
+    content: {
+        padding: 20
+    },
+})
 
 class BLogin1 extends React.Component {
     state = {
@@ -23,7 +52,9 @@ class BLogin1 extends React.Component {
         user_token: '',
         loader: '',
         avatarSource1: '',
-        avatarSource: ''
+        avatarSource: '',
+        fileName: '',
+        imagePath:  ''
     }
 
     componentWillUnmount() {
@@ -42,29 +73,7 @@ class BLogin1 extends React.Component {
 
         try {
             const value = await AsyncStorage.getItem('@owner_number');
-            this.setState({
-                owner_number: value
-            })
-
-            const owner = await firestore().collection('owner').doc(value).get()
-            console.log("llllll", owner.exists)
-            if (owner.exists) {
-                console.log(owner)
-                console.log(owner.data().Buisness_name)
-                console.log(owner.data().image_url)
-                let image
-                if (owner.data().image_url) {
-                    image = owner.data().image_url
-                } else {
-                    image = '../img/face1.jpg'
-                }
-                this.setState({
-                    buisness_Name: owner.data().Buisness_name,
-                    avatarSource1: image,
-                }, () => {
-                    console.log(this.state.avatarSource1)
-                })
-            }
+            this.setState({owner_number: value})
             await firestore()
                 .collection('user')
                 .where('mobile_no', '==', value)
@@ -72,44 +81,13 @@ class BLogin1 extends React.Component {
                 .then((data) => {
                     data.forEach(e => {
                         console.log("e has values", e);
-                        this.setState({
-                            userId: e.id,
-                            user_token: e.data().user_token
-                        })
+                        this.setState({ userId: e.id, user_token: e.data().user_token })
                     })
                 })
         } catch {
             console.log('my error')
             Alert.alert('Please create your user account first')
         }
-
-    }
-    save_data = () => {
-        let docId = this.state.owner_number
-        const uploadedData = firestore()
-            .collection('owner')
-            .doc(docId)
-            .set({
-                user_Id: this.state.userId,
-                Buisness_name: this.state.buisness_Name,
-                buisness_start_time: '',
-                buisness_end_time: '',
-                appointment_start_time: '',
-                appointment_end_time: '',
-                image_url: this.state.fs_imageurl,
-                owner_token: this.state.user_token,
-                Availablity: false
-            })
-            .then(async () => {
-                console.log('Buisess name added succefully')
-                const setvalue = await AsyncStorage.setItem(
-                    '@user_type', '2' // 1 for user and two for owner. by default all are users
-                );
-                this.props.navigation.navigate('BLogin2');
-            })
-            .catch(err => {
-                Alert.alert('please contact mobilesutra err : ', err)
-            })
     }
     setImage = () => {
         console.log('setImage function')
@@ -125,16 +103,15 @@ class BLogin1 extends React.Component {
             } else {
                 const source = { uri: response.uri };
 
-                if (source && response.fileSize <= 300000) {
-
+                if (source && response.fileSize <= 2000000) {
                     // code copied from https://www.pluralsight.com/guides/upload-images-to-firebase-storage-in-react-native
                     let path = this.getPlatformPath(response).value;
                     let fileName = this.getFileName(response.fileName, path);
-                    this.setState({ imagePath: path, avatarSource: source });
-                    this.uploadImageToStorage(path, fileName);
+                    this.setState({ imagePath: path, avatarSource: source, fileName: fileName });
+                    // this.uploadImageToStorage(path, fileName);
 
                 } else {
-                    Alert.alert('File should be less than 300KBs')
+                    Alert.alert('File should be less than 2MBs')
                 }
             }
         });
@@ -147,20 +124,6 @@ class BLogin1 extends React.Component {
             path = "~" + path.substring(path.indexOf("/Documents"));
         }
         return path.split("/").pop();
-    }
-
-    uploadImageToStorage(path, name) {
-        this.setState({ isLoading: true });
-        let reference = storage().ref(name);
-        let task = reference.putFile(path);
-        task.then(() => {
-            console.log('Image uploaded to the bucket!');
-            this.setState({ isLoading: false, status: 'Image uploaded successfully', fs_imageurl: reference.getDownloadURL() });
-        }).catch((e) => {
-            status = 'Something went wrong';
-            console.log('uploading image error => ', e);
-            this.setState({ isLoading: false, status: 'Something went wrong' });
-        });
     }
 
     /**
@@ -183,136 +146,85 @@ class BLogin1 extends React.Component {
         }
         return imgSource
     }
-
-
-    // UploadImage = (path, mime = 'application/octet-stream') => {
-
-    //     this.setState({ loader: false })
-    //     if (path) {
-    //         //code
-    //         console.log("File type", path)
-
-    //         const sessionId = new Date().getTime();
-
-    //         var storageRef = storage().ref(`shop_images`).child(`${sessionId}`);
-
-    //         var task = storageRef.putFile(this.state.avatarSource.uri, { contentType: mime })
-    //             .on(
-    //                 'state_changed', taskSnapshot => {
-    //                     console.log(`${taskSnapshot.bytesTransferred} transferred out of ${taskSnapshot.totalBytes}`);
-    //                 },
-    //                 error => {
-    //                     console.log('err while uploading data onto firebase storage', error)
-    //                 },
-    //                 () => {
-    //                     storageRef.getDownloadURL()
-    //                         .then((downloadurl) => {
-    //                             console.log("file availale at :", downloadurl);
-    //                             this.setState({ fs_imageurl: downloadurl, loader: false })
-    //                         })
-    //                 }
-    //             );
-    //     } else {
-    //         //code
-    //         console.log('image uploading error')
-    //     }
-    // }
     render() {
-        // https://firebasestorage.googleapis.com/v0/b/queue-bf183.appspot.com/o/shop_images%2F1606303166308?alt=media&token=4a4064e9-79e4-484a-867d-a9aa326eafa6
+        let { imagePath } = this.state;
+        let imgSource = this.getPlatformURI(imagePath)
         return (
-            <SafeAreaView
-                style={{
-                    backgroundColor: 'white',
-                    flex: 1,
-                }}>
-                <Modal transparent={true} visible={this.state.loader} ><ActivityIndicator color='#2570EC' size='large' /></Modal>
+            <SafeAreaView style={{ backgroundColor: 'white', flex: 1, }}>
+                <Modal transparent={true} visible={this.state.loader} >
+                    <ActivityIndicator color='#2570EC' size='large' />
+                </Modal>
                 {/* ------------------------- Header Bar ----------------------------------- */}
-                <Header style={{ backgroundColor: 'white', height: hp('8%') }} androidStatusBarColor='grey' >
-                    <Left>
-                        <TouchableOpacity
-                            onPress={() => this.props.navigation.navigate('Book_Appointment')}
-                        >
-                            <Text style={{ fontSize: wp('6%') }}>  ☰  </Text>
+                <Header style={styles.header_bg} androidStatusBarColor="grey">
+                    <Left style={{ flex: 1 }}>
+                        <TouchableOpacity onPress={() => { this.props.navigation.navigate('Book_Appointment') }}>
+                            <RN_Icon name='menu' size={30} color="#000" />
                         </TouchableOpacity>
                     </Left>
-                    <Body>
-                        <Text
-                            numberOfLines={1}
-                            style={{
-                                textAlign: 'center',
-                                marginLeft: wp('9%'),
-                                marginRight: wp('-16%'),
-                                fontSize: wp('5%'),
-                                color: '#2570EC',
-                                fontFamily: 'Averia Serif Libre',
-                            }}>
-                            Business sign-up
-                        </Text>
+                    <Body style={styles.Header_Body}>
+                        <Title style={styles.Header_Name}>Business sign-up</Title>
                     </Body>
-                    <Right />
+                    <Right style={{ flex: 1 }} />
                 </Header>
-                <View style={{ marginTop: hp('3%'), }}>
-                    <Text style={{ marginLeft: wp('3%'), fontWeight: 'bold', fontSize: wp('3.5%') }}>
-                        Please enter your business name and its profile photo (optional)
-                    </Text>
-                </View>
-                <View>
-                    <TextInput
-                        keyboardType="ascii-capable"
-                        placeholder="Your Business name"
-                        fontSize={35}
-                        value={this.state.buisness_Name}
-                        onChangeText={(buisness_Name) => this.setState({ buisness_Name })}
-                        style={{
-                            width: wp('90%'),
-                            margin: wp('3%'),
-                            color: '#5F6368',
-                            borderColor: 'blue',
-                            borderBottomWidth: 1,
-                        }}></TextInput>
-                </View>
-                <View
-                    style={{
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        marginTop: hp('10%'),
-                    }}>
+                {/* ----------------------- Body Of Screen ------------------------------- */}
+                <Container>
+                    <Content contentContainerStyle={styles.content}>
+                        <View>
+                            <Text style={{ fontWeight: 'bold', fontSize: wp('3.5%') }}>
+                                Enter business name and its photo
+                            </Text>
 
-                    <TouchableHighlight onPress={() => { this.setImage() }}>
-                        <Thumbnail
-                            style={{ borderRadius: 100, height: hp('30%'), width: wp('55%'), }}
-                            large
-                            source={this.state.avatarSource ?
-                                this.state.avatarSource : require('../img/face1.jpg')}
-                        />
-                    </TouchableHighlight>
-                    {this.state.avatarSource ? <Text> image already uploaded</Text> : null}
-                </View>
-                <View
-                    style={{
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        marginTop: wp('2%'),
-                    }}>
-                    <TouchableOpacity
-                        onPress={() => {
-                            // this.props.navigation.navigate('BLogin2');
-                            this.save_data()
-                        }}
-                        style={{
-                            backgroundColor: '#2570EC',
-                            width: wp('90%'),
-                            height: hp('7.5%'),
-                            borderRadius: 50,
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            marginTop: hp('10%'),
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                        }}>
-                        <Text style={{ color: 'white', fontSize: 14 }}>Next</Text>
-                    </TouchableOpacity>
-                </View>
+                            <TextInput
+                                keyboardType="ascii-capable"
+                                placeholder="Your Business name"
+                                fontSize={35}
+                                value={this.state.buisness_Name}
+                                onChangeText={(buisness_Name) => this.setState({ buisness_Name })}
+                                style={{
+                                    color: '#5F6368',
+                                    borderColor: 'blue',
+                                    borderBottomWidth: 1,
+                                }} />
+
+                            <TouchableHighlight onPress={() => { this.setImage() }} style={{ alignItems: 'center', justifyContent: 'center', marginTop: hp('10%'), }}>
+                                <ImageBackground style={{ width: wp('100%'), height: 250, zIndex: 900, backgroundColor: 'grey', justifyContent: 'center', alignItems: 'center' }} source={imgSource ? imgSource : require('../img/b1.jpg')} >
+                                    <View style={{ width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.4)' }}>
+                                        <Text style={{ color: 'white' }}>Click here to select Image</Text>
+                                    </View>
+                                </ImageBackground>
+                            </TouchableHighlight>
+                            {/* {this.state.avatarSource ? <Text> image already uploaded</Text> : null} */}
+
+                            <TouchableOpacity
+                                onPress={() => {
+                                    this.props.navigation.navigate('BLogin2',
+                                        {
+                                            imagePath: this.state.imagePath,
+                                            buisness_Name: this.state.buisness_Name,
+                                            fileName: this.state.fileName,
+                                            owner_number: this.state.owner_number,
+                                            userId: this.state.userId,
+                                            user_token: this.state.user_token
+                                        })
+                                }}
+                                // onPress={() => { this.save_data() }}
+                                disabled={this.state.buisness_Name.length > 3 ? false : true}
+                                style={{
+                                    backgroundColor: this.state.buisness_Name.length > 3 ? '#2570EC' : '#808080',
+                                    width: wp('90%'),
+                                    height: hp('7.5%'),
+                                    borderRadius: 50,
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    marginTop: hp('10%'),
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                }}>
+                                <Text style={{ color: 'white', fontSize: 14 }}>Next</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </Content>
+                </Container>
             </SafeAreaView>
         );
     }

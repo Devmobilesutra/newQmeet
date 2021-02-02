@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { Accordion, Container, Header, Title, Content, Footer, FooterTab, List, ListItem, Left, Right, Body, Icon, Text, View, Card, CardItem, Tab, Tabs, TabHeading, Thumbnail } from 'native-base';
-import IconRV from 'react-native-vector-icons/Ionicons';
 import { BackHandler, Button, StyleSheet, Modal, SafeAreaView, Image, TextInput, TouchableOpacity, Alert, } from 'react-native';
 import {
     widthPercentageToDP as wp,
@@ -10,6 +9,8 @@ import {
 } from 'react-native-responsive-screen';
 import firestore from '@react-native-firebase/firestore';
 import AsyncStorage from '@react-native-community/async-storage';
+import RN_Icon from 'react-native-vector-icons/AntDesign';
+import App_Header2 from '../Common_services/App_Header2'
 
 class profile_details extends Component {
 
@@ -19,7 +20,8 @@ class profile_details extends Component {
             ownerId: '',
             user_name: '',
             user_data: '',
-            switch: false
+            switch: false,
+            isLoader: false
         };
     }
     async get_localData() {
@@ -31,7 +33,7 @@ class profile_details extends Component {
     }
 
     backAction = () => {
-        this.props.navigation.navigate('Book_Appointment')
+        this.props.navigation.goBack()
         return true;
     };
     componentWillUnmount() {
@@ -42,70 +44,97 @@ class profile_details extends Component {
         this.get_localData()
             .then(() => {
                 console.log("------------", this.state.ownerId)
-                // let id = this.state.ownerId
-                // console.log(id,"id -----------------")
                 const fs_data = firestore()
                     .collection('user')
                     .where('mobile_no', '==', this.state.ownerId)
-                    .get()
-                    .then((datasnap) => {
-                        // console.log(datasnap)
-                        let data_array = []
-                        datasnap.forEach(e => {
-                            data_array.push(e.data())
-                        })
+                    .onSnapshot(
+                        (datasnap) => {
+                            if (!datasnap.empty) {
+                                datasnap.forEach(e => {
+                                    this.setState({
+                                        userId: e.id,
+                                        user_data: e.data(),
+                                        user_name: e.data().name,
+                                        mobile_no: e.data().mobile_no,
+                                        user_profile: e.data().imageurl
+                                    })
+                                })
+                            }
 
-                        console.log("data fetched from firebase", data_array)
-                        this.setState({
-                            user_data: data_array,
-                            user_name: data_array[0].name,
-                            mobile_no: data_array[0].mobile_no,
-                            user_profile: data_array[0].imageurl
-                        }, () => console.log(this.state.user_data[0].name, "99999999", this.state.user_name))
-                    }, err => {
-                        console.log("data fetching error", err)
+                        }, err => {
+                            console.log("data fetching error", err)
+                        })
+            })
+    }
+    deleteAccount() {
+        Alert.alert("Hold On!", "Do you really want to delete your account?", 
+        [
+            {
+                text: "No",
+                onPress: () => null,
+                style: "cancel"
+            },
+            { text: "YES", onPress: () => this.deleteAccount1() }
+        ]);
+    }
+    async deleteAccount1() {
+        // deleting user from system
+        console.warn("deleting user")
+
+        this.setState({ isLoader: true })
+        const user = await firestore().collection('appointment').where('user_mobileNo', '==', this.state.ownerId).get()
+        console.log(user.empty)
+        if (!user.empty) {
+            user.forEach(async (data) => {
+                console.log(data.id)
+                await firestore().collection('appointment').doc(data.id).delete().then(
+                    datasnap => {
+                        console.log("data deleted", datasnap)
                     })
             })
+            await firestore().doc(`user/${this.state.userId}`).delete().then(
+                datasnap => {
+                    console.log("data deleted from user table", datasnap)
+                    this.props.navigation.navigate("Welcome")
+                })
+            const type = await AsyncStorage.clear()
+        } else {
+            await firestore().doc(`user/${this.state.userId}`).delete().then(
+                datasnap => {
+                    console.log("data deleted from user table", datasnap);
+                    this.props.navigation.navigate("Welcome")
+                })
+            const type = await AsyncStorage.clear()
+        }
+
     }
     render() {
         return (
             <Container>
-                <Header style={{ backgroundColor: 'white', height: hp('8%') }} androidStatusBarColor='grey' >
-                    <Left>
-                        <TouchableOpacity
-                            onPress={() => this.props.navigation.navigate('Book_Appointment')}
-                        >
-                            <Text style={{ fontSize: wp('6%') }}>  ←  </Text>
+                <Header style={styles.header_bg} androidStatusBarColor="grey">
+                    <Left style={{ flex: 1 }}>
+                        <TouchableOpacity onPress={() => { this.props.navigation.goBack() }}>
+                            <RN_Icon name='arrowleft' size={30} color="#000" />
                         </TouchableOpacity>
                     </Left>
-                    <Body style={{
-                        // justifyContent: 'center',
-                        // alignItems: 'center'
-                    }}>
-                        <Text
-                            style={{
-                                fontSize: wp('5%'),
-                                color: '#2570EC',
-                                fontWeight: '700',
-                                fontFamily: 'Averia Serif Libre',
-                            }}>
-                            Profile Details
-                            </Text>
+                    <Body style={styles.Header_Body}>
+                        <Title style={styles.Header_Name}>Profile details</Title>
                     </Body>
+                    <Right style={{ flex: 1 }} />
                 </Header>
                 <Content style={{ padding: 20 }}>
                     <List style={{ borderBottomWidth: 1, borderBottomColor: '#E4E4E4' }}>
-                        <TouchableOpacity>
-                            <ListItem thumbnail>
+                        <TouchableOpacity >
+                            <ListItem thumbnail onPress={() => this.props.navigation.navigate('EditUser', { navigation_page: 1 })}>
                                 <Left>
-                                    <Thumbnail source={this.state.user_profile || require('../../img/five.jpg')} style={{ width: 52.03, height: 52.03, borderRadius: 52.03 }} />
+                                    <Thumbnail source={this.state.user_profile ? { uri: this.state.user_profile } : require('../../img/five.jpg')} style={{ width: 52.03, height: 52.03, borderRadius: 52.03 }} />
                                 </Left>
                                 <Body>
-                                    <Text>{this.state.user_name}</Text>
+                                    <Text numberOfLines={1}>{this.state.user_name}</Text>
                                     <Text note numberOfLines={1}>{this.state.mobile_no}</Text>
                                 </Body>
                                 <Right>
-                                    <Text style={{ fontSize: 30 }}> 〉 </Text>
+                                    <RN_Icon name="right" size={30} color="#000000" />
                                 </Right>
                             </ListItem>
                         </TouchableOpacity>
@@ -125,9 +154,9 @@ class profile_details extends Component {
                     {/* ----------------------------- Business sign-up ---------------------------------------------------------- */}
                     <List style={{ borderBottomWidth: 1, borderBottomColor: '#E4E4E4' }}>
                         <ListItem thumbnail>
-                            <Body style={{ flexDirection: 'row' }}>
+                            <Body>
                                 {/* <Text style={{ fontStyle: 'normal', fontFamily: 'NotoSans', fontWeight: '500', fontSize: 13 }}>Business sign-up</Text> */}
-                                <TouchableOpacity onPress={() => this.props.navigation.navigate('EditUser')}>
+                                <TouchableOpacity onPress={() => this.props.navigation.navigate('BLogin1')}>
                                     <Text style={{ fontStyle: 'normal', fontFamily: 'NotoSans', fontWeight: '500', fontSize: 16 }}>Business sign-up</Text>
                                 </TouchableOpacity>
                             </Body>
@@ -135,6 +164,7 @@ class profile_details extends Component {
                     </List>
                 </Content>
                 <TouchableOpacity
+                    onPress={() => { this.deleteAccount() }}
                     style={{
                         justifyContent: 'flex-end',
                         alignItems: 'flex-end',
@@ -170,6 +200,27 @@ const styles = StyleSheet.create({
     },
     activeTabTextStyle: {
         color: 'red'
+    },
+    header_bg: {
+        backgroundColor: "#FFFFFF",
+        elevation: 0,
+        borderBottomWidth: 1,
+        borderBottomColor: '#D4D4D4',
+        marginLeft: 10,
+        marginRight: 10
+    },
+    Header_Body: {
+        flex: 4,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#FFFFFF',
+    },
+    Header_Name: {
+        fontFamily: 'NotoSans-Regular',
+        color: '#2570EC',
+        fontSize: 16,
+        fontStyle: 'normal',
+        fontWeight: '700'
     }
 })
 export default profile_details;

@@ -1,5 +1,5 @@
 apply plugin: "com.android.application"
-apply plugin: 'com.google.gms.google-services'
+apply plugin: 'com.google.gms.google-services' // <- Add this line
 
 import com.android.build.OutputFile
 
@@ -83,6 +83,7 @@ project.ext.react = [
 ]
 
 apply from: "../../node_modules/react-native/react.gradle"
+apply from: "../../node_modules/react-native-vector-icons/fonts.gradle" //<-- Add for React Native Vector Icons
 
 /**
  * Set this to true to create two separate APKs instead of one:
@@ -130,11 +131,11 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.queue"
+        applicationId "com.qmeet"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "2.0"
         multiDexEnabled true
         missingDimensionStrategy 'react-native-camera', 'general' //for react native qr code scanner imported by me
         vectorDrawables.useSupportLibrary = true //added for image picker functionality
@@ -198,6 +199,8 @@ dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     //noinspection GradleDynamicVersion
     implementation "com.facebook.react:react-native:+"  // From node_modules
+    
+    implementation project(':react-native-vector-icons') // <--- For React native vector icons
 
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
 

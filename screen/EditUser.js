@@ -1,12 +1,13 @@
 import React, { Component } from 'react';
-import { StyleSheet, View, SafeAreaView, ScrollView, Image, TextInput, TouchableOpacity, Alert, Modal, ActivityIndicator } from 'react-native';
+import { BackHandler, StyleSheet, View, SafeAreaView, ScrollView, Image, TextInput, TouchableOpacity, Alert, Modal, ActivityIndicator } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp, listenOrientationChange as lor, removeOrientationListener as rol, } from 'react-native-responsive-screen';
-import { Container, Header, Content, List, ListItem, Thumbnail, Text, Left, Body, Right, Button, Icon, Fab, H1, } from 'native-base';
+import { Container, Header, Content, List, ListItem, Thumbnail, Text, Title, Left, Body, Right, Button, Icon, Fab, H1, } from 'native-base';
 import AsyncStorage from '@react-native-community/async-storage';
 import firestore from '@react-native-firebase/firestore';
 import { TouchableHighlight } from 'react-native-gesture-handler';
 import ImagePicker from 'react-native-image-picker';
 import storage from '@react-native-firebase/storage';
+import RN_Icon from 'react-native-vector-icons/AntDesign';
 
 const options = {
     title: 'Select Avatar',
@@ -31,51 +32,42 @@ class EditUser extends React.Component {
         id: '',
     }
 
+    backAction = () => {
+        console.log("params send from respective profile details", this.props.route.params.navigation_page)
+        // this.props.navigation.navigate(this.props.route.params.navigation_page)
+        if (this.props.route.params.navigation_page === 2) {
+            this.props.navigation.navigate('profile_details_2')
+        }
+        if (this.props.route.params.navigation_page === 1) {
+            this.props.navigation.navigate('profile_details')
+        }
+
+        return true;
+    };
+    componentWillUnmount() {
+        BackHandler.removeEventListener("hardwareBackPress", this.backAction);
+    }
     async componentDidMount() {
-        // this.retrievData()
-        // this.requestUserPermission()
+        BackHandler.addEventListener("hardwareBackPress", this.backAction);
         const value = await AsyncStorage.getItem('@owner_number');
         console.log('own no', value)
-        this.setState({
-            mobileno: value
-        })
+        this.setState({ mobileno: value })
         const data = await firestore().collection('user').where('mobile_no', '==', value).get()
         console.log("data cha id", data)
-        // console.log(data.exists)
         data.forEach(element => {
             console.log(element.id)
             this.setState({
                 id: element.id,
                 owners_Name: element.data().name,
-                fs_imageurl: element.data().imageurl,
+                imageurl: element.data().imageurl,
             })
         });
-    }
-
-    componentWillUnmount() {
-        // this.setState({
-        //     owners_Name: '',
-        //     mobileno: '',
-        //     avatarSource: '',
-        //     modalVisible: false,
-        //     fs_imageurl: '',
-        //     disable: true,
-        //     isLoading: false,
-        //     ImageSize: 0,
-        //     id: '',
-        // })
-    }
-
-    retrievData = async () => {
-
     }
     save_info = async () => {
 
         if (this.state.owners_Name && this.state.mobileno.length == 10) {
 
-            this.setState({
-                isLoading: true
-            })
+            this.setState({ isLoading: true })
             console.log(this.state.owners_Name)
             console.log("selected image", this.state.fs_imageurl)
             console.log(typeof (this.state.mobileno))
@@ -86,14 +78,15 @@ class EditUser extends React.Component {
                 .update({
                     name: this.state.owners_Name,
                     mobile_no: this.state.mobileno,
-                    imageurl: this.state.imageurl,
-                    // user_token: this.state.user_token,
+                    imageurl: this.state.imageurl
                 })
-            await AsyncStorage.setItem('@user_type', '1'); // 1 for user and 2 for owner. by default all are users
-            console.log(await AsyncStorage.getItem('@user_type'))
-            this.setState({ isLoading: false }, () => {
-                this.props.navigation.navigate('Book_Appointment')
-            })
+            this.setState({ isLoading: false })
+            console.log("page name", this.props.route.params.navigation_page);
+            if (this.props.route.params.navigation_page === 1) {
+                this.props.navigation.navigate('profile_details')
+            } else {
+                this.props.navigation.navigate('profile_details_2')
+            }
 
         } else {
             Alert.alert('Enter the Details Properly')
@@ -117,16 +110,16 @@ class EditUser extends React.Component {
                 // You can also display the image using data:
                 //   const source = { uri: 'data:image/jpeg;base64,' + response.data };
 
-                if (source && response.fileSize <= 300000) {
+                if (source && response.fileSize <= 2000000) {
 
                     // code copied from https://www.pluralsight.com/guides/upload-images-to-firebase-storage-in-react-native
                     let path = this.getPlatformPath(response).value;
                     let fileName = this.getFileName(response.fileName, path);
-                    this.setState({ imagePath: path, fs_imageurl: source }); 
+                    this.setState({ imagePath: path, fs_imageurl: source });
                     this.uploadImageToStorage(path, fileName);
 
                 } else {
-                    Alert.alert('File should be less than 300KBs')
+                    Alert.alert('File should be less than 2MBs')
                 }
             }
         });
@@ -177,112 +170,85 @@ class EditUser extends React.Component {
     }
     render() {
         return (
-            <SafeAreaView
-                style={{
-                    backgroundColor: 'white',
-                    flex: 1,
-                }}>
+            <SafeAreaView style={{ backgroundColor: 'white', flex: 1 }} >
                 <Modal transparent={true} visible={this.state.isLoading} >
                     <View style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
                         <ActivityIndicator color='#2570EC' size='large' style={{ alignSelf: 'center' }} />
                     </View>
                 </Modal>
+                <Header style={styles.header_bg} androidStatusBarColor="grey">
+                    <Left style={{ flex: 1 }}>
+                        <TouchableOpacity onPress={() => {
+                            this.props.route.params.navigation_page === 2
+                                ? this.props.navigation.navigate('profile_details_2')
+                                : this.props.navigation.navigate('profile_details')
+                        }}>
+                            <RN_Icon name='arrowleft' size={30} color="#000" />
+                        </TouchableOpacity>
+                    </Left>
+                    <Body style={styles.Header_Body}>
+                        <Title style={styles.Header_Name}>Edit User Details</Title>
+                    </Body>
+                    <Right style={{ flex: 1 }} />
+                </Header>
                 <ScrollView>
-                    <Header style={{ backgroundColor: 'white', height: hp('8%') }} androidStatusBarColor='grey' >
-                        <Body style={{
-                            justifyContent: 'center',
-                            alignItems: 'center'
-                        }}>
-                            <Text
-                                style={{
-                                    fontSize: wp('5%'),
-                                    color: '#2570EC',
-                                    fontWeight: '700',
-                                    fontFamily: 'Averia Serif Libre',
-                                }}>
-                                Edit Details
-                            </Text>
-                        </Body>
-                    </Header>
-                    <View
-                        style={{
-                            paddingLeft: wp('5%'),
-                        }}>
-                        <Text
-                            style={{
-
-                                fontWeight: 'bold',
-                                fontSize: wp('3.5%'),
-                                color: '#343434',
-                                marginTop: hp('2%'),
-                            }}>
+                    <Content style={{ padding: 20 }}>
+                        <Text style={{ fontWeight: 'bold', fontSize: wp('3.5%'), color: '#343434', marginTop: hp('2%'), }}>
                             Enter your name
                         </Text>
-                        <View>
-                            <TextInput
-                                value={this.state.owners_Name}
-                                onChangeText={(owners_Name) => {
-                                    this.setState({ owners_Name: owners_Name, disable: false })
-                                }}
-                                keyboardType="ascii-capable"
-                                // keyboardType="numeric"
-                                fontSize={30}
-                                style={{
-                                    // margin: hp('2%'),
-                                    color: '#5F6368',
-                                    //height: 90,
-                                    width: wp('90%'),
-                                    borderColor: 'blue',
-                                    borderBottomWidth: 1.5,
-                                }}></TextInput>
-                        </View>
-                    </View>
-                    <View style={{
-                        marginTop: hp('5%'),
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                    }}>
-                        <Text
+                        <TextInput
+                            value={this.state.owners_Name}
+                            onChangeText={(owners_Name) => {
+                                this.setState({ owners_Name: owners_Name, disable: false })
+                            }}
+                            keyboardType="ascii-capable"
+                            fontSize={30}
                             style={{
+                                color: '#5F6368',
+                                borderColor: 'blue',
+                                borderBottomWidth: 1.5,
+                            }} />
 
-                                fontWeight: 'bold',
-                                fontSize: wp('3.5%'),
-                                color: '#343434',
-                                marginTop: hp('2%'),
-                            }}>
-                            Profile Image is optional
-                        </Text>
-                        <TouchableHighlight onPress={() => { this.setImage() }}>
-                            <Thumbnail
-                                style={{
-                                    borderRadius: 100, height: hp('30%'),
-                                    width: wp('55%'),
-                                }}
-                                large source={this.state.imageurl ? { uri : this.state.imageurl } :
-                                    this.state.fs_imageurl ? this.state.fs_imageurl : require('../img/five.jpg')} />
-                        </TouchableHighlight>
-                    </View>
-                    <View
-                        style={{
+                        <View style={{
+                            marginTop: hp('5%'),
                             alignItems: 'center',
                             justifyContent: 'center',
                         }}>
-                        <TouchableOpacity
-                            style={{
-                                backgroundColor: this.state.disable ? '#D3D3D3' : '#2570EC',
-                                width: wp('90%'),
-                                height: hp('7.5%'),
-                                borderRadius: 50,
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                marginTop: hp('14%'),
-                            }}
-                            disabled={this.state.disable}
-                            onPress={() => { this.save_info() }}
-                        >
-                            <Text style={{ color: 'white', fontSize: 14 }}>Save</Text>
-                        </TouchableOpacity>
-                    </View>
+
+                            <Text
+                                style={{
+                                    fontFamily: 'Roboto_medium',
+                                    fontStyle: 'normal',
+                                    alignContent: 'center',
+                                    fontWeight: '500',
+                                    fontSize: 14,
+                                    color: '#343434',
+                                }}>
+                                Profile Image is optional
+                        </Text>
+                            <TouchableHighlight onPress={() => { this.setImage() }}>
+                                <Thumbnail
+                                    style={{ borderRadius: 170, height: 170, width: 170 }}
+                                    large source={this.state.imageurl ? { uri: this.state.imageurl } :
+                                        this.state.fs_imageurl ? this.state.fs_imageurl : require('../img/five.jpg')} />
+                            </TouchableHighlight>
+                            <TouchableOpacity
+                                style={{
+                                    backgroundColor: this.state.disable ? '#D3D3D3' : '#2570EC',
+                                    width: wp('85%'),
+                                    height: hp('7.5%'),
+                                    borderRadius: 50,
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    marginTop: hp('14%')
+                                }}
+                                disabled={this.state.disable}
+                                onPress={() => { this.save_info() }}
+                            >
+                                <Text style={{ color: 'white', fontSize: 14 }}>Save</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </Content>
                 </ScrollView>
             </SafeAreaView>
         );
@@ -332,4 +298,25 @@ const styles = StyleSheet.create({
         marginBottom: 15,
         textAlign: 'center',
     },
+    header_bg: {
+        backgroundColor: "#FFFFFF",
+        elevation: 0,
+        borderBottomWidth: 1,
+        borderBottomColor: '#D4D4D4',
+        marginLeft: 10,
+        marginRight: 10
+    },
+    Header_Body: {
+        flex: 4,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#FFFFFF',
+    },
+    Header_Name: {
+        fontFamily: 'NotoSans-Regular',
+        color: '#2570EC',
+        fontSize: 16,
+        fontStyle: 'normal',
+        fontWeight: '700'
+    }
 });

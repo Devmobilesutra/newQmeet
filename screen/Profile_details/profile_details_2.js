@@ -134,24 +134,24 @@ class profile_details_2 extends Component {
                     console.log("data deleted from owner table ", datasnap);
                 })
             await firestore().doc(`appointment-count/${this.state.ownerId}`).delete().then(
-                datasnap => {
+                async (datasnap) => {
                     console.log("data deleted from appointment count table", datasnap);
                     this.props.navigation.navigate("Welcome");
                 })
-            const type = await AsyncStorage.clear()
+            const type = await AsyncStorage.clear();
         }
 
     }
     deleteAccount1() {
-        Alert.alert("Hold On!", "Do you really want to delete your account?", 
-        [
-            {
-                text: "No",
-                onPress: () => null,
-                style: "cancel"
-            },
-            { text: "YES", onPress: () => this.deleteAccount() }
-        ]);
+        Alert.alert("Hold On!", "Do you really want to delete your account?",
+            [
+                {
+                    text: "No",
+                    onPress: () => null,
+                    style: "cancel"
+                },
+                { text: "YES", onPress: () => this.deleteAccount() }
+            ]);
     }
     render() {
         const uri = "../../img/face1.jpg";

@@ -57,7 +57,8 @@ class Appointment_List extends React.Component {
             dropIndex: 0,
             oldList: [],
             direction: true,
-            EditFlag: false
+            EditFlag: false,
+            Buisness_Name: ''
         }
     }
 
@@ -67,32 +68,40 @@ class Appointment_List extends React.Component {
         this.setState({
             async_ownerNo: own
         }, () => {
-            firestore().collection('appointment').where('ownerId', '==', this.state.async_ownerNo).onSnapshot(data => {
-                // Get  corresponding owners data from firestore
-                console.log(data);
-                let appointment_data = [];
-                let timestamp;
-                if (data) {
-                    data.forEach((element) => {
-                        console.log(element.data());
-                        console.log(element.id);
-                        //delete element.data().timestamp; // temporarily delete ... some issue
-                        appointment_data.push({
-                            firebaseRef: element,
-                            id: element.id,
-                            ...element.data(),
-                        });
-                    });
+            firestore().collection('owner').doc(this.state.async_ownerNo).onSnapshot(Buisness_Name => {
+                console.log("cuisness name", Buisness_Name.exists, " ", Buisness_Name);
+                if (Buisness_Name.exists) {
+                    this.setState({ Buisness_Name: Buisness_Name.data().Buisness_name });
                 }
-                this.setState(
-                    {
-                        listArray: _.sortBy(appointment_data, 'Appointment_No'),
-                    },
-                    () => {
-                        console.log(this.state.listArray);
-                    },
-                );
-            })
+            });
+
+            firestore().collection('appointment').where('ownerId', '==', this.state.async_ownerNo)
+                .onSnapshot(data => {
+                    // Get  corresponding owners data from firestore
+                    console.log(data);
+                    let appointment_data = [];
+                    let timestamp;
+                    if (data) {
+                        data.forEach((element) => {
+                            console.log(element.data());
+                            console.log(element.id);
+                            //delete element.data().timestamp; // temporarily delete ... some issue
+                            appointment_data.push({
+                                firebaseRef: element,
+                                id: element.id,
+                                ...element.data(),
+                            });
+                        });
+                    }
+                    this.setState(
+                        {
+                            listArray: _.sortBy(appointment_data, 'Appointment_No'),
+                        },
+                        () => {
+                            console.log(this.state.listArray);
+                        },
+                    );
+                })
         })
     }
     backAction = () => {
@@ -109,12 +118,12 @@ class Appointment_List extends React.Component {
     componentWillUnmount() {
         BackHandler.removeEventListener("hardwareBackPress", this.backAction);
     }
-    componentDidMount() {
+    async componentDidMount() {
         this.backHandler = BackHandler.addEventListener(
             "hardwareBackPress",
             this.backAction
         );
-        this.ownernumber()
+        this.ownernumber();
     }
     updateRank = async (doc, rank) => {
         try {
@@ -225,20 +234,20 @@ class Appointment_List extends React.Component {
         }
 
         const existingUser = await firestore().collection('user').where('mobile_no', '==', customer_number).get();
-        if(existingUser.empty) {
+        if (existingUser.empty) {
             var userId = null;
             var user_token = null;
-            var user_image = null;            
+            var user_image = null;
         } else {
-            existingUser.forEach( d => {
-                console.log("data of usre",d)
+            existingUser.forEach(d => {
+                console.log("data of usre", d)
                 userId = d.id;
                 user_token = d.data().user_token;
                 user_image = d.data().imageurl;
             });
         }
         const online_appointment1 = functions().httpsCallable('online_appointment1');
-        
+
         online_appointment1({
             appointment_mode: false,
             ownerId: this.state.async_ownerNo,
@@ -285,7 +294,7 @@ class Appointment_List extends React.Component {
                 console.log("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh:", typeof (this.state.customer_number), this.state.customer_number)
                 let sms_data = {
                     "contact_number": this.state.customer_number,
-                    "sms_text": "Please install QMeet App from this link "
+                    "sms_text": "Please download and install Qmeet app to get real time updates for your number in queue"
                 }
                 Axios.post(url, JSON.stringify(sms_data), config)
                     .then(response => {
@@ -372,7 +381,7 @@ class Appointment_List extends React.Component {
                             color: item.appointment_mode == false ? '#EA4335' : 'black'
                         }}>{item.Appointment_No}</Text>
                         <Thumbnail
-                            source={item.user_image ? { uri: item.user_image } : require('../img/face1.jpg')}
+                            source={item.user_image && item.user_image !== null && item.user_image !== "" ? { uri: item.user_image } : require('../img/face1.jpg')}
                         />
                     </Left>
                     <Body noBorder>
@@ -403,7 +412,7 @@ class Appointment_List extends React.Component {
         );
     };
     render() {
-        const { listArray } = this.state;
+        const { listArray, Buisness_Name } = this.state;
         return (
             <>
                 <SafeAreaView style={{ width: '100%', height: '100%' }}>
@@ -420,7 +429,10 @@ class Appointment_List extends React.Component {
                             </TouchableOpacity>
                         </Left>
                         <Body style={{ position: 'relative', marginLeft: wp('-30%'), justifyContent: 'center', alignItems: 'center' }}>
-                            <Image style={{ width: 79, height: 36 }} source={require('../Assets/Group_31.jpg')} />
+                            {/* <Image style={{ width: 79, height: 36 }} source={require('../Assets/Group_31.jpg')} /> */}
+                            <View style={{ width: wp('70%') }}>
+                                <Text numberOfLines={1} style={{ color: '#2570EC', fontSize: 16, fontFamily: 'NotoSans-Regular', fontWeight: '700', fontStyle: 'normal', textAlign: 'center' }}>{Buisness_Name}</Text>
+                            </View>
                         </Body>
                     </Header>
                     <DraggableFlatList

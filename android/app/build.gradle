@@ -134,8 +134,8 @@ android {
         applicationId "com.qmeet"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 4
-        versionName "2.2"
+        versionCode 9
+        versionName "2.7"
         multiDexEnabled true
         missingDimensionStrategy 'react-native-camera', 'general' //for react native qr code scanner imported by me
         vectorDrawables.useSupportLibrary = true //added for image picker functionality
@@ -195,6 +195,13 @@ android {
 }
 
 dependencies {
+    //Firebase Auth implementation
+    implementation platform('com.google.firebase:firebase-bom:26.3.0')
+    implementation 'com.google.firebase:firebase-auth'
+    
+    // Add this line
+    implementation "androidx.browser:browser:1.2.0"
+    
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation fileTree(dir: "libs", include: ["*.jar"])
     //noinspection GradleDynamicVersion

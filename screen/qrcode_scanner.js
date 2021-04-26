@@ -20,7 +20,7 @@ class qrcode_scanner extends React.Component {
     }
 
     backAction = () => {
-        this.props.navigation.navigate('Book_Appointment')
+        this.props.navigation.navigate('Book_Appointment');
         return true;
     };
 
@@ -43,19 +43,16 @@ class qrcode_scanner extends React.Component {
             console.log("qr code state", this.state.qr)
             if(this.state.qr) {
                 this.check_availability(this.state.qr.replace(/"/g, ""))
-            }            
+            }
         })
         console.log("id", e.data)
-        // Linking.openURL(e.data).catch( err => {
-        //     Alert.alert("Invalid QR Code", e.data)
-        // })
     }
     check_availability(check_ownerId) {
         console.log("This is Check Avilability");
         firestore().collection('owner').doc(check_ownerId).get()
             .then(data => {
                 if(data.exists) {
-                    console.log("fetched owner details", data.data())
+                    console.log("fetched owner details", data.data()) 
                     this.props.navigation.navigate('confirm_Appointment', {
                         ownerId: check_ownerId
                     })
@@ -86,19 +83,11 @@ class qrcode_scanner extends React.Component {
                             reactivateTimeout={3000}
                             showMarker={true}
                             markerStyle={{ borderColor: '#FFF', borderRadius: 15 }}
-                        // topContent={
-                        //     <View style={{ marginTop: wp('5%')}}>
-                        //         <Text style={{ textAlignVertical: 'center', color: 'white' }}>Scan QR code</Text>
-                        //     </View>
-                        // }
                         />
 
                         <View style={{ width: '100%', marginTop: 40, justifyContent: 'flex-start', alignItems: 'center' }}>
                             <View style={{ width: '90%', margin: 40, justifyContent: 'center', alignItems: 'center', borderColor: 'grey' }} >
                                 <Image source={require('../Assets/or_line.png')} style={{ width: 300}} />
-                                {/* <View style={{ top: wp('4%'), width: wp('9%'), height: hp('4%'), backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }}>
-                                    <Text style={{ fontSize: wp('6%'), zIndex: 999, position: 'absolute', textAlign: 'center' }}>OR</Text>
-                                </View> */}
                             </View>
                             
                             <Text style={{ alignSelf: 'flex-start', marginLeft: wp('3%') }}> Enter Buisnes Mobile No </Text>

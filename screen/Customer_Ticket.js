@@ -36,8 +36,16 @@ class Customer_Ticket extends React.Component {
     Owner_Name: '',
     Owner_Number: '',
     loader: false,
+    shift: false,
     BST: '',
-    BET: ''
+    BET: '',
+    BST2: '',
+    BET2: '',
+
+    AST: '',
+    AET: '',
+    AST2: '',
+    AET2: '',
   }
 
   backAction = () => {
@@ -60,7 +68,7 @@ class Customer_Ticket extends React.Component {
       this.backAction
     );
     console.log('customer Ticket')
-    console.log(this.props.route.params.ownerId) // Qr code scanned number
+    console.log(this.props.route.params.ownerId, "\n type ", typeof (this.props.route.params.ownerId)) // Qr code scanned number
 
     const value = await AsyncStorage.getItem('@owner_number'); // userId (mobile no) of a app user
     console.log("asyc", value)
@@ -69,50 +77,69 @@ class Customer_Ticket extends React.Component {
     // console.log(shop_image.data().image_url)
     console.log(shop_image.data().user_Id)
     console.log(shop_image.data().Buisness_name)
-    // console.log(shop_image.data().Buisness_name)
 
-    const owner_profile = await firestore().collection('user').doc(shop_image.data().user_Id).get()
-    // console.log(owner_profile.data().imageurl)
-    console.log(owner_profile.data().name)
-    console.log(owner_profile.data().mobile_no)
+    const owner_profile = await firestore().collection('user').doc(shop_image.data().user_Id)
+      .get()
+      .then(owner_profile => {
+        console.log(owner_profile.data().name)
+        console.log(owner_profile.data().mobile_no)
+        if (shop_image.data().image_url != undefined) { // for setting owner business image
+          this.setState({
+            ShopImage: shop_image.data().image_url
+          })
+        }
+        if (owner_profile.data().imageurl != undefined) { // for setting owner's profile image 
+          this.setState({
+            owner_profile: owner_profile.data().imageurl
+          })
+        }
 
-    if (shop_image.data().image_url != undefined) {
-      this.setState({
-        ShopImage: shop_image.data().image_url
+        console.log("shift 44444444444", shop_image.data().shift);
+        // setting image to state for displaying
+        if (shop_image.data().shift) {
+          this.setState({
+            // ShopImage: shop_image.data().image_url,
+            // owner_profile: owner_profile.data().imageurl,
+            Buisness_Name: shop_image.data().Buisness_name,
+            Owner_Name: owner_profile.data().name,
+            Owner_Number: owner_profile.data().mobile_no,
+
+            shift: shop_image.data().shift,
+
+            BST: shop_image.data().buisness_start_time,
+            BET: shop_image.data().buisness_end_time,
+
+            BST2: shop_image.data().second_buisness_start_time,
+            BET2: shop_image.data().second_buisness_end_time,
+
+            AST: shop_image.data().appointment_start_time,
+            AET: shop_image.data().appointment_end_time,
+
+            AST2: shop_image.data().second_appointment_start_time,
+            AET2: shop_image.data().second_appointment_end_time,
+          })
+        } else {
+          this.setState({
+            // ShopImage: shop_image.data().image_url,
+            // owner_profile: owner_profile.data().imageurl,
+            Buisness_Name: shop_image.data().Buisness_name,
+            Owner_Name: owner_profile.data().name,
+            Owner_Number: owner_profile.data().mobile_no,
+
+            shift: shop_image.data().shift,
+
+            BST: shop_image.data().buisness_start_time,
+            BET: shop_image.data().buisness_end_time,
+
+            AST: shop_image.data().appointment_start_time,
+            AET: shop_image.data().appointment_end_time,
+          })
+        }
       })
-    }
-    if (owner_profile.data().imageurl != undefined) {
-      this.setState({
-        owner_profile: owner_profile.data().imageurl
-      })
-    }
-    // setting image to state for displaying
-    this.setState({
-      // ShopImage: shop_image.data().image_url,
-      // owner_profile: owner_profile.data().imageurl,
-      Buisness_Name: shop_image.data().Buisness_name,
-      Owner_Name: owner_profile.data().name,
-      Owner_Number: owner_profile.data().mobile_no,
-      BST: shop_image.data().buisness_start_time,
-      BET: shop_image.data().buisness_end_time
-    })
 
     firestore().collection('appointment').where('user_mobileNo', '==', value).onSnapshot(snapshot => { // realtime appointment changes from firebase
       console.log(snapshot)
       if (snapshot.empty) {
-        // Alert.alert(
-        //   "",
-        //   "Your Appointment is deletd or data for this appointment no longer exist, You can take a new appointment now",
-        //   [
-        //     {
-        //       text: "OK", onPress: () => {
-        //         this.setState({ loader: false })
-        //         this.props.navigation.navigate('Book_Appointment')
-        //         return null;
-        //       }
-        //     }
-        //   ],
-        //   { cancelable: false })
         this.setState({
           Appointment_No: null,
           Appointment_id: ''
@@ -200,7 +227,7 @@ class Customer_Ticket extends React.Component {
         <Header style={styles.header_bg} androidStatusBarColor="grey">
           <Left style={{ flex: 1 }}>
             <TouchableOpacity
-            onPress={() => { this.props.navigation.navigate('profile_details') }}
+              onPress={() => { this.props.navigation.navigate('profile_details') }}
             >
               <RN_Icon name="menu" size={30} color="#000000" />
             </TouchableOpacity>
@@ -249,7 +276,7 @@ class Customer_Ticket extends React.Component {
                     <Text style={{ fontSize: wp('3.5%'), fontWeight: 'bold', textAlign: 'center' }}>Your number</Text>
                     {this.state.Appointment_No ?
                       <Text style={{ fontSize: wp('12%'), color: '#2570EC' }}>{this.state.Appointment_No}</Text>
-                      : <Text style={{ textAlign: 'center'}}> Either your appointment is deleted or you have cancelled appointment </Text>}
+                      : <Text style={{ textAlign: 'center' }}> Either your appointment is deleted or you have cancelled appointment </Text>}
                   </View>
                 </View>
                 {/* {this.MyAlert()} */}
@@ -293,8 +320,14 @@ class Customer_Ticket extends React.Component {
           }}>
 
             <Text style={styles.message_text}>{this.state.Buisness_Name} Time </Text>
-            <Text style={styles.message_text}>            
-              <Text>From {moment(new Date(this.state.BST.seconds * 1000 + this.state.BST.nanoseconds / 1000000)).format('hh:mm a')} to {moment(new Date(this.state.BET.seconds * 1000 + this.state.BET.nanoseconds / 1000000)).format('hh:mm a')}</Text>
+            <Text style={styles.message_text}>
+              {/* <Text>From {moment(new Date(this.state.BST.seconds * 1000 + this.state.BST.nanoseconds / 1000000)).format('hh:mm a')} to {moment(new Date(this.state.BET.seconds * 1000 + this.state.BET.nanoseconds / 1000000)).format('hh:mm a')}</Text> */}
+              {this.state.shift ?
+                <View>
+                  <Text style={styles.message_text1}>Fisrt Half : From {moment(new Date(this.state.AST.seconds * 1000 + this.state.AST.nanoseconds / 1000000)).format('hh:mm a')} to {moment(new Date(this.state.AET.seconds * 1000 + this.state.AET.nanoseconds / 1000000)).format('hh:mm a')}</Text>
+                  <Text style={styles.message_text1}>Second Half : From {moment(new Date(this.state.AST2.seconds * 1000 + this.state.AST2.nanoseconds / 1000000)).format('hh:mm a')} to {moment(new Date(this.state.AET2.seconds * 1000 + this.state.AET2.nanoseconds / 1000000)).format('hh:mm a')}</Text>
+                </View>
+                : <Text style={styles.message_text1}>From {moment(new Date(this.state.AST.seconds * 1000 + this.state.AST.nanoseconds / 1000000)).format('hh:mm a')} to {moment(new Date(this.state.AET.seconds * 1000 + this.state.AET.nanoseconds / 1000000)).format('hh:mm a')}</Text>}
             </Text>
 
             <TouchableOpacity
@@ -377,6 +410,14 @@ const styles = StyleSheet.create({
     color: '#EA4335',
     fontFamily: 'NotoSans-Regular',
     fontSize: 18,
+    fontWeight: "500",
+    fontStyle: 'normal',
+    textAlign: 'center'
+  },
+  message_text1: {
+    color: '#EA4335',
+    fontFamily: 'NotoSans-Regular',
+    fontSize: 14,
     fontWeight: "500",
     fontStyle: 'normal',
     textAlign: 'center'

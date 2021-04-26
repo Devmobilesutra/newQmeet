@@ -54,7 +54,7 @@ class BLogin1 extends React.Component {
         avatarSource1: '',
         avatarSource: '',
         fileName: '',
-        imagePath:  ''
+        imagePath: ''
     }
 
     componentWillUnmount() {
@@ -73,14 +73,14 @@ class BLogin1 extends React.Component {
 
         try {
             const value = await AsyncStorage.getItem('@owner_number');
-            this.setState({owner_number: value})
+            this.setState({ owner_number: value })
             await firestore()
                 .collection('user')
                 .where('mobile_no', '==', value)
                 .get()
                 .then((data) => {
                     data.forEach(e => {
-                        console.log("e has values", e);
+                        console.log("e has values", e, "\n owner id", e.id);
                         this.setState({ userId: e.id, user_token: e.data().user_token })
                     })
                 })

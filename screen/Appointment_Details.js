@@ -15,6 +15,14 @@ class Appointment_Details extends React.Component {
     appointment: '',
     BST: '',
     BET: '',
+    BST2: '',
+    BET2: '',
+
+    AST: '',
+    AET: '',
+    AST2: '',
+    AET2: '',
+    
     buisness_name: ''
   }
   backAction = () => {
@@ -46,12 +54,42 @@ class Appointment_Details extends React.Component {
       console.log("This is shop data", Shop_data.data())
       snapshot.forEach(element => {
         // console.log(element.data())
-        this.setState({
-          Appointment_No: element.data().Appointment_No,
-          BST: Shop_data.data().buisness_start_time,
-          BET: Shop_data.data().buisness_end_time,
-          buisness_name: Shop_data.data().Buisness_name
-        })
+        if (Shop_data.data().shift) {
+          this.setState({
+            Appointment_No: element.data().Appointment_No,
+
+            shift: Shop_data.data().shift,
+
+            BST: Shop_data.data().buisness_start_time,
+            BET: Shop_data.data().buisness_end_time,
+
+            BST2: Shop_data.data().second_buisness_start_time,
+            BET2: Shop_data.data().second_buisness_end_time,
+            
+            AST: Shop_data.data().appointment_start_time,
+            AET: Shop_data.data().appointment_end_time,
+
+            AST2: Shop_data.data().second_appointment_start_time,
+            AET2: Shop_data.data().second_appointment_end_time,
+
+            buisness_name: Shop_data.data().Buisness_name
+          })
+        } else {
+          this.setState({
+            Appointment_No: element.data().Appointment_No,
+
+            shift: Shop_data.data().shift,
+
+            BST: Shop_data.data().buisness_start_time,
+            BET: Shop_data.data().buisness_end_time,
+            
+            AST: Shop_data.data().appointment_start_time,
+            AET: Shop_data.data().appointment_end_time,
+
+            buisness_name: Shop_data.data().Buisness_name
+          })
+        }
+
       });
     })
   }
@@ -62,7 +100,7 @@ class Appointment_Details extends React.Component {
         <ScrollView>
           <View style={{ padding: wp('2%'), alignItems: 'center', justifyContent: 'center', }}>
             <Text style={{ marginTop: hp('1%'), fontSize: wp('5%'), color: 'white', }}>
-              Appointment detail
+              Appointment Details
           </Text>
             <View style={{ marginTop: hp('2%'), borderBottomWidth: 1, borderColor: '#D4D4D4', width: '100%', }} />
           </View>
@@ -93,7 +131,12 @@ class Appointment_Details extends React.Component {
           <View style={{ flexDirection: 'column', justifyContent: 'center', alignItems: 'center', marginTop: hp('5%') }}>
 
             <Text style={styles.message_text}>{this.state.buisness_name} </Text>
-            <Text style={styles.message_text}>From {moment(new Date(this.state.BST.seconds * 1000 + this.state.BST.nanoseconds / 1000000)).format('hh:mm a')} to {moment(new Date(this.state.BET.seconds * 1000 + this.state.BET.nanoseconds / 1000000)).format('hh:mm a')}</Text>
+            {this.state.shift ?
+              <View>
+                <Text style={styles.message_text}>Fisrt Half : From {moment(new Date(this.state.AST.seconds * 1000 + this.state.AST.nanoseconds / 1000000)).format('hh:mm a')} to {moment(new Date(this.state.AET.seconds * 1000 + this.state.AET.nanoseconds / 1000000)).format('hh:mm a')}</Text>
+                <Text style={styles.message_text}>Second Half : From {moment(new Date(this.state.AST2.seconds * 1000 + this.state.AST2.nanoseconds / 1000000)).format('hh:mm a')} to {moment(new Date(this.state.AET2.seconds * 1000 + this.state.AET2.nanoseconds / 1000000)).format('hh:mm a')}</Text>
+              </View>
+              : <Text style={styles.message_text}>From {moment(new Date(this.state.AST.seconds * 1000 + this.state.AST.nanoseconds / 1000000)).format('hh:mm a')} to {moment(new Date(this.state.AET.seconds * 1000 + this.state.AET.nanoseconds / 1000000)).format('hh:mm a')}</Text>}
           </View>
           <View style={{
             alignItems: 'center',

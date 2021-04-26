@@ -49,10 +49,15 @@ class confirm_Appointment extends React.Component {
     user_number: '',
     owner_token: '',
     user_token: '',
+
     B_startTime: '',
     B_endTime: '',
     A_startTime: '',
     A_endTime: '',
+
+    A_startTime2: '',
+    A_endTime2: '',
+
     message: null,
     name: '',
     can_make_app: false,
@@ -79,53 +84,120 @@ class confirm_Appointment extends React.Component {
 
       const snap = await firestore().doc(`user/${d}`).get();
 
-      this.setState({
-        // data of app user
-        name: user_name1,
-        // data of business owner from owner collection
-        owner_number: snapshot.id,
-        ShopImage_url: snapshot.data().image_url,
-        shop_name: snapshot.data().Buisness_name,
-        availability: snapshot.data().Availablity,
-        userId: snapshot.data().user_Id,
-        owner_token: snapshot.data().owner_token,
-        B_startTime: snapshot.data().buisness_start_time,
-        B_endTime: snapshot.data().buisness_end_time,
-        A_startTime: snapshot.data().appointment_start_time,
-        A_endTime: snapshot.data().appointment_end_time,
-        // data of business owner from user collection
-        user_number: snap.data().mobile_no,
-        profileImage_url: snap.data().imageurl,
-        user_token: snap.data().user_token,
-        user_name: snap.data().name
-      })
+      if (snapshot.data().shift) {
+        this.setState({
+          // data of app user
+          name: user_name1,
+          // data of business owner from owner collection
+          owner_number: snapshot.id,
+          ShopImage_url: snapshot.data().image_url,
+          shop_name: snapshot.data().Buisness_name,
+          availability: snapshot.data().Availablity,
+          userId: snapshot.data().user_Id,
+          owner_token: snapshot.data().owner_token,
+
+          B_startTime: snapshot.data().buisness_start_time,
+          B_endTime: snapshot.data().buisness_end_time,
+          A_startTime: snapshot.data().appointment_start_time,
+          A_endTime: snapshot.data().appointment_end_time,
+
+          A_startTime2: snapshot.data().shift ? snapshot.data().second_appointment_start_time : null,
+          A_endTime2: snapshot.data().shift ? snapshot.data().second_appointment_end_time : null,
+
+          shift: snapshot.data().shift,
+
+          // data of business owner from user collection
+          user_number: snap.data().mobile_no,
+          profileImage_url: snap.data().imageurl,
+          user_token: snap.data().user_token,
+          user_name: snap.data().name
+        })
+      } else {
+        this.setState({
+          // data of app user
+          name: user_name1,
+          // data of business owner from owner collection
+          owner_number: snapshot.id,
+          ShopImage_url: snapshot.data().image_url,
+          shop_name: snapshot.data().Buisness_name,
+          availability: snapshot.data().Availablity,
+          userId: snapshot.data().user_Id,
+          owner_token: snapshot.data().owner_token,
+
+          B_startTime: snapshot.data().buisness_start_time,
+          B_endTime: snapshot.data().buisness_end_time,
+          A_startTime: snapshot.data().appointment_start_time,
+          A_endTime: snapshot.data().appointment_end_time,
+
+          // A_startTime2: snapshot.data().shift ? snapshot.data().second_appointment_start_time : null,
+          // A_endTime2: snapshot.data().shift ? snapshot.data().second_appointment_end_time : null,
+
+          shift: snapshot.data().shift,
+
+          // data of business owner from user collection
+          user_number: snap.data().mobile_no,
+          profileImage_url: snap.data().imageurl,
+          user_token: snap.data().user_token,
+          user_name: snap.data().name
+        })
+      }
+
       this.checkOwner_availability()
     })
   }
   async checkOwner_availability() {
     console.log('checkOwner_availability function')
-    var { name, availability, shop_name, B_startTime, B_endTime, A_startTime, A_endTime, can_make_app } = this.state;
-    console.log("data set to variales", name ,availability, B_startTime, B_endTime, A_startTime, A_endTime, can_make_app);
+    var { name, availability, shop_name, B_startTime, B_endTime, A_startTime, A_startTime2, A_endTime, A_endTime2, shift, can_make_app } = this.state;
+    console.log("data set to variales", name, availability, B_startTime, B_endTime, A_startTime, A_endTime, can_make_app);
     if (availability === true) {
 
       // Checking whether user taking appointment in available time period or not set bu=y owner
       var end_time = new Date(A_endTime.seconds * 1000 + A_endTime.nanoseconds / 1000000);
       var start_time = new Date(A_startTime.seconds * 1000 + A_startTime.nanoseconds / 1000000);
-      var test = end_time.getTime() < new Date().getTime();
-      var test2 = moment(end_time).format('HH:mm:ss') < moment().format('HH:mm:ss');
-      // var test = 
 
-      console.log(
-        "this is end", end_time, typeof (end_time),
-        "end time with moment", moment(end_time).format('HH:mm:ss'),
-        " this is current time", moment(new Date()).format('HH:mm:ss'),
-        " if cond", test,
-        ' if cond with moment', test2)
+      var end_time2 = new Date(A_endTime2.seconds * 1000 + A_endTime2.nanoseconds / 1000000);
+      var start_time2 = new Date(A_startTime2.seconds * 1000 + A_startTime2.nanoseconds / 1000000);
 
-      if (moment(end_time).format('HH:mm:ss') < moment().format('HH:mm:ss')) {
-        this.setState({ message: `${shop_name}'s Online appointment time has over` })
+      console.log("shift: ", shift,
+        "\nA_startTime: ", moment(start_time).format('HH:mm:ss'),
+        "\nA_endTime: ", moment(end_time).format('HH:mm:ss'),
+
+        "\nA_startTime2", moment(start_time2).format('HH:mm:ss'),
+        "\nA_endTime2", moment(end_time2).format('HH:mm:ss'),
+
+        "\n current time", moment().format('HH:mm:ss'),
+
+        "\n First Half", moment(start_time).format('HH:mm:ss') < moment().format('HH:mm:ss') && moment().format('HH:mm:ss') < moment(end_time).format('HH:mm:ss'),
+        "\n Second Half", moment(start_time2).format('HH:mm:ss') < moment().format('HH:mm:ss') && moment().format('HH:mm:ss') < moment(end_time2).format('HH:mm:ss'),
+
+        "\n midle time", moment(end_time).format('HH:mm:ss') < moment().format('HH:mm:ss') && moment().format('HH:mm:ss') < moment(start_time2).format('HH:mm:ss')
+      );
+      if (shift) {
+        if (moment(start_time).format('HH:mm:ss') < moment().format('HH:mm:ss') && moment().format('HH:mm:ss') < moment(end_time).format('HH:mm:ss')) {
+          console.log("1 first half");
+          this.setState({ can_make_app: true });
+        } else if (moment(start_time2).format('HH:mm:ss') < moment().format('HH:mm:ss') && moment().format('HH:mm:ss') < moment(end_time2).format('HH:mm:ss')) {
+          console.log("2 second half");
+          this.setState({ can_make_app: true });
+        } else {
+          if (moment(end_time).format('HH:mm:ss') < moment().format('HH:mm:ss') && moment().format('HH:mm:ss') < moment(start_time2).format('HH:mm:ss')) {
+            console.log(" Can't make an appointment 1");
+            this.setState({
+              message: `${shop_name}'s Online appointment time has over. Online appointment time for First Half will be from ${moment(start_time).format('HH:mm A')} to ${moment(end_time).format('HH:mm A')} and for Second Half will be from ${moment(start_time2).format('HH:mm A')} to ${moment(end_time2).format('HH:mm A')}`
+            });
+          } else {
+            console.log(" Can't make an appointment 2");
+            this.setState({ message: `${shop_name}'s Online appointment time has over. Online appointment time for First Half will be from ${moment(start_time).format('HH:mm A')} to ${moment(end_time).format('HH:mm A')} and for Second Half will be from ${moment(start_time2).format('HH:mm A')} to ${moment(end_time2).format('HH:mm A')}` });
+          }
+        }
       } else {
-        this.setState({ can_make_app: true })
+        if (moment(start_time).format('HH:mm:ss') < moment().format('HH:mm:ss') && moment(end_time).format('HH:mm:ss') > moment().format('HH:mm:ss')) {
+          this.setState({ can_make_app: true })
+        } else {
+          this.setState({
+            message: `${shop_name}'s Online appointment time has over. Online appointment time will be from ${moment(start_time).format('HH:mm A')} to ${moment(end_time).format('HH:mm A')}`
+          });
+        }
       }
 
     } else if (availability === false) {
@@ -159,29 +231,29 @@ class confirm_Appointment extends React.Component {
       console.log(' confirm appointment ', userId + uName + utoken)
 
       const online_appointment1 = functions().httpsCallable('online_appointment1');
-        online_appointment1({
-            appointment_mode: false,
-            ownerId: this.state.owner_number,
-            userId: userId,
-            user_number: value,
-            userName: uName,
-            owner_token: this.state.owner_token ? this.state.owner_token : null,
-            user_token: utoken,
-            user_image: user_image,
-            appointment_mode: true
-        }).then( async (data) => {
-            console.log(" indian time will be ", data)
-            
-              // SetAppointment flag set to true since user had made an appointment
-              await AsyncStorage.setItem('@SetAppointment', 'true');
-              await AsyncStorage.setItem('@Book_ownerId', this.props.route.params.ownerId);
+      online_appointment1({
+        appointment_mode: false,
+        ownerId: this.state.owner_number,
+        userId: userId,
+        user_number: value,
+        userName: uName,
+        owner_token: this.state.owner_token ? this.state.owner_token : null,
+        user_token: utoken,
+        user_image: user_image,
+        appointment_mode: true
+      }).then(async (data) => {
+        console.log(" indian time will be ", data)
 
-              this.setState({ loader: false })
-              this.props.navigation.navigate('Appointment_Details', { ownerId: this.props.route.params.ownerId.replace(/"/g, "") })
-        }).catch(err => {
-            console.error();
-            this.setState({ loader: false, customer_name: '', customer_number: '' });
-        })
+        // SetAppointment flag set to true since user had made an appointment
+        await AsyncStorage.setItem('@SetAppointment', 'true');
+        await AsyncStorage.setItem('@Book_ownerId', this.props.route.params.ownerId);
+
+        this.setState({ loader: false })
+        this.props.navigation.navigate('Appointment_Details', { ownerId: this.props.route.params.ownerId.replace(/"/g, "") })
+      }).catch(err => {
+        console.error();
+        this.setState({ loader: false, customer_name: '', customer_number: '' });
+      })
       // const appoinment_number = await firestore()
       //   .collection('appointment-count')
       //   .doc(this.state.owner_number)

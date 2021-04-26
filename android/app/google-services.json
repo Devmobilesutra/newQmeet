@@ -23,6 +23,22 @@
           }
         },
         {
+          "client_id": "857028710626-7g6tpibmfoqnh0p26hic7iu5fio4igud.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.qmeet",
+            "certificate_hash": "de732925c17fffcebcb7bf4acbc2648b165d6ef6"
+          }
+        },
+        {
+          "client_id": "857028710626-sij9vned5k2omb2auk5jin8ggk04ql5s.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.qmeet",
+            "certificate_hash": "3eb40f0a9cfdc83a6cb9f501c946f01246365a70"
+          }
+        },
+        {
           "client_id": "857028710626-o2m42c7gngdhhn7f5q1vpr514pae9aqd.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -51,6 +67,14 @@
         }
       },
       "oauth_client": [
+        {
+          "client_id": "857028710626-5shc24evqkng02lubnt8miai58pih2se.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.queue",
+            "certificate_hash": "a323c7dce6ec667bc3c581c95c956278ab967d21"
+          }
+        },
         {
           "client_id": "857028710626-o2m42c7gngdhhn7f5q1vpr514pae9aqd.apps.googleusercontent.com",
           "client_type": 3

@@ -23,6 +23,8 @@ import EditBuisness from "./screen/EditBuisness";
 import EditUser from "./screen/EditUser";
 import { widthPercentageToDP } from 'react-native-responsive-screen';
 import App_Header2 from './screen/Common_services/App_Header2'
+import Contact_Us from './screen/Contact_Us_O'
+import Contact_Us_U from './screen/Contact_Us_U'
 import RN_Icon from 'react-native-vector-icons/AntDesign';
 
 const Stack = createStackNavigator();
@@ -54,6 +56,8 @@ function App() {
         <Stack.Screen name="Appointment_List" component={Appointment_List} options={{ headerShown: false }} />
         <Stack.Screen name="Appointment_Details_2" component={Appointment_Details_2} options={{ headerShown: false }} />
         <Stack.Screen name="EditUser" component={EditUser} options={{ headerShown: false }} />
+        <Stack.Screen name="Contact_Us" component={Contact_Us} options={{ headerShown: false }} />{/* Contact Us Owner Side - 27-04-21 */}
+        <Stack.Screen name="Contact_Us_U" component={Contact_Us_U} options={{ headerShown: false }} />{/* Contact Us User Side - 27-04-21 */}
       </Stack.Navigator>
     </NavigationContainer>
   );

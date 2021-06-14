@@ -13,6 +13,7 @@ import {
     TouchableHighlight,
     Alert,
     BackHandler,
+    Linking
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp, listenOrientationChange as lor, removeOrientationListener as rol } from 'react-native-responsive-screen';
@@ -224,7 +225,16 @@ class Welcome extends React.Component {
             console.log(error)
         }
     };
-
+    // opening url
+    async openUrl() {
+        const supported = await Linking.canOpenURL('http://qmeet.in/Terms');
+        if (supported) {
+            console.log("supported", supported);
+            Linking.openURL('http://qmeet.in')
+        } else {
+            console.log("un supported", supported);
+        }
+    }
     render() {
         return (
             <SafeAreaView
@@ -302,13 +312,21 @@ class Welcome extends React.Component {
                         }}>
                         By clicking on next, you agree with our
                     </Text>
-                    <Text
+                    <TouchableOpacity
+                        onPress={() => { this.openUrl() }}
                         style={{
                             fontSize: wp('3.5%'),
                             color: '#EA4335',
                         }}>
-                        Terms & Conditions
-              </Text>
+
+                        <Text
+                            style={{
+                                fontSize: wp('3.5%'),
+                                color: '#EA4335',
+                            }}>
+                            Terms & Conditions
+                        </Text>
+                    </TouchableOpacity>
                     <TouchableOpacity
                         onPress={this.createTwoButtonAlert}
                         // onPress={() => {this.signInWithPhoneNumber('+91 9404080613')}}
@@ -339,19 +357,18 @@ class Welcome extends React.Component {
                             <Text
                                 style={{
                                     fontWeight: 'bold',
-                                    marginRight: wp('20%'),
-                                    marginTop: hp('5%'),
-                                }}>
+                                }}
+                            >
                                 Enter OTP sent to your mobile number
                             </Text>
                             <CodeInput
                                 ref="codeInputRef1"
                                 // secureTextEntry
                                 className={'border-b'}
-                                space={20}
+                                space={wp('2')}
                                 codeLength={4}
-                                size={70}
-                                codeInputStyle={{ fontWeight: '800', fontSize: 20 }}
+                                size={wp('20')}
+                                codeInputStyle={{ fontWeight: '800', fontSize: wp('10') }}
                                 keyboardType="numeric"
                                 inputPosition="center"
                                 activeColor="#000000"
@@ -360,14 +377,6 @@ class Welcome extends React.Component {
                                 ignoreCase={true}
                                 onFulfill={(code) => this.profiler(code)}
                             />
-                            {/* <TouchableHighlight
-                                style={{ ...styles.openButton, backgroundColor: '#2570EC' }}
-                                onPress={() => {
-                                    // this.props.navigation.navigate('Profile');
-                                    this.profiler(code)
-                                }}>
-                                <Text style={styles.textStyle}>Next</Text>
-                            </TouchableHighlight> */}
                         </View>
                     </View>
                 </Modal>
@@ -390,9 +399,11 @@ const styles = StyleSheet.create({
     },
     container2: {
         backgroundColor: 'white',
-        width: '100%',
+        width: wp('100%'),
         height: hp('60%'),
-        paddingTop: 12,
+        // paddingTop: 12,
+        paddingHorizontal: wp('8'),
+        paddingVertical: hp('8'),
         borderTopRightRadius: 15,
         borderTopLeftRadius: 15,
         alignItems: 'center',

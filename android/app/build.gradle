@@ -134,8 +134,8 @@ android {
         applicationId "com.qmeet"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 9
-        versionName "2.7"
+        versionCode 13
+        versionName "3.1"
         multiDexEnabled true
         missingDimensionStrategy 'react-native-camera', 'general' //for react native qr code scanner imported by me
         vectorDrawables.useSupportLibrary = true //added for image picker functionality

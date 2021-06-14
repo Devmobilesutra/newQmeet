@@ -30,13 +30,19 @@ class Customer_Ticket extends React.Component {
   state = {
     Appointment_No: '',
     Appointment_id: '',
+    Appointment_Timestamp: '',
+    Appointment_Mobile: '',
+
     ShopImage: '',
     owner_profile: '',
     Buisness_Name: '',
     Owner_Name: '',
     Owner_Number: '',
+
     loader: false,
+
     shift: false,
+
     BST: '',
     BET: '',
     BST2: '',
@@ -46,6 +52,10 @@ class Customer_Ticket extends React.Component {
     AET: '',
     AST2: '',
     AET2: '',
+
+    // For Owner Messages
+    ownerMessage: '',
+    PausedFlag: false
   }
 
   backAction = () => {
@@ -63,6 +73,7 @@ class Customer_Ticket extends React.Component {
     BackHandler.removeEventListener("hardwareBackPress", this.backAction);
   }
   async componentDidMount() {
+    this.setState({ loader: true });
     this.backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
       this.backAction
@@ -73,10 +84,17 @@ class Customer_Ticket extends React.Component {
     const value = await AsyncStorage.getItem('@owner_number'); // userId (mobile no) of a app user
     console.log("asyc", value)
 
+    firestore().collection('owner').doc(this.props.route.params.ownerId).onSnapshot((data) => {
+      console.log(data.data().flag)
+      this.setState({
+        PausedFlag: data.data().flag.status,
+        ownerMessage: data.data().flag.message,
+      }, () => { console.log(" --- Paused flag " + typeof this.state.PausedFlag + " \n Message " + this.state.ownerMessage) })
+    })
     const shop_image = await firestore().collection('owner').doc(this.props.route.params.ownerId).get() // fetching shop image from firebase
     // console.log(shop_image.data().image_url)
     console.log(shop_image.data().user_Id)
-    console.log(shop_image.data().Buisness_name)
+    console.log(shop_image.data().Buisness_name);
 
     const owner_profile = await firestore().collection('user').doc(shop_image.data().user_Id)
       .get()
@@ -100,6 +118,7 @@ class Customer_Ticket extends React.Component {
           this.setState({
             // ShopImage: shop_image.data().image_url,
             // owner_profile: owner_profile.data().imageurl,
+
             Buisness_Name: shop_image.data().Buisness_name,
             Owner_Name: owner_profile.data().name,
             Owner_Number: owner_profile.data().mobile_no,
@@ -120,8 +139,7 @@ class Customer_Ticket extends React.Component {
           })
         } else {
           this.setState({
-            // ShopImage: shop_image.data().image_url,
-            // owner_profile: owner_profile.data().imageurl,
+
             Buisness_Name: shop_image.data().Buisness_name,
             Owner_Name: owner_profile.data().name,
             Owner_Number: owner_profile.data().mobile_no,
@@ -142,16 +160,23 @@ class Customer_Ticket extends React.Component {
       if (snapshot.empty) {
         this.setState({
           Appointment_No: null,
-          Appointment_id: ''
+          Appointment_id: '',
+
+          loader: false
         })
       } else {
         snapshot.forEach(element => {
-          // console.log(element.data())
           console.log("appoillllllllllllllllllllllllllllllllllllllll", element.id)
           this.setState({
+
             Appointment_No: element.data().Appointment_No,
-            Appointment_id: element.id
+            Appointment_id: element.id,
+            Appointment_Timestamp: element.data().timestamp,
+            Appointment_Mobile: element.data().user_mobileNo,
+
+            loader: false
           })
+
         });
       }
     })
@@ -178,22 +203,29 @@ class Customer_Ticket extends React.Component {
 
   // Firebase call to cancel or delete an appointment from user side
   cancel_appointment() {
+    const { Appointment_No, Appointment_Mobile, Appointment_Timestamp, Appointment_id } = this.state;
     console.log('completed', this.state.Appointment_id)
     this.setState({ loader: true })
+
     const deleteAppointment = functions().httpsCallable('deleteAppointment');
     deleteAppointment({
-      id: this.state.Appointment_id
+      id: this.state.Appointment_id,
+      Appointment_Mobile: Appointment_Mobile,
+      Appointment_No: Appointment_No,
+      Appointment_Timestamp: Appointment_Timestamp,
+      Appointment_id: Appointment_id,
+      OwnerId: this.props.route.params.ownerId
     })
       .then(async (snapshot) => {
         let appointment = await AsyncStorage.setItem('@SetAppointment', 'false')
         let Book_ownerId = await AsyncStorage.setItem('@Book_ownerId', '')
+        this.setState({ loader: false })
         Alert.alert(
           "",
           "Your Appointment is been canceled Succesfully",
           [
             {
               text: "OK", onPress: () => {
-                this.setState({ loader: false })
                 this.props.navigation.navigate('Book_Appointment')
               }
             }
@@ -223,6 +255,11 @@ class Customer_Ticket extends React.Component {
   render() {
     return (
       <Container>
+        <Modal transparent={true} visible={this.state.loader} >
+          <View style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+            <ActivityIndicator color='#2570EC' size='large' style={{ alignSelf: 'center' }} />
+          </View>
+        </Modal>
         {/* ------------------------- Header Bar ----------------------------------- */}
         <Header style={styles.header_bg} androidStatusBarColor="grey">
           <Left style={{ flex: 1 }}>
@@ -264,7 +301,6 @@ class Customer_Ticket extends React.Component {
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-
             {this.state.Appointment_No ?
               <View style={styles.RectangleShape}>
                 <View>
@@ -288,10 +324,11 @@ class Customer_Ticket extends React.Component {
                     justifyContent: 'center',
                     alignItems: 'center',
                   }}>
-                    <Text style={{ fontSize: wp('3.5%'), fontWeight: 'bold' }}>Owner deleted your appointment</Text>
+
+                    <Text style={{ fontSize: wp('3.5%'), fontWeight: 'bold' }}>Your turn is over</Text>
                     {/* <TouchableOpacity onPress={() => {this.MyAlert()}}><Text>OK</Text></TouchableOpacity>*/}
                     <TouchableOpacity
-                      onPress={() => { this.MyAlert() }}
+                      onPress={() => { this.props.navigation.navigate('Book_Appointment') }}
                       style={{
                         backgroundColor: '#2570EC',
                         width: wp('30%'),
@@ -307,9 +344,12 @@ class Customer_Ticket extends React.Component {
                 </View>
               </View>
             }
+            {/* {this.state.Appointment_No != 1 ?
+              <Text style={styles.message_text}>Thanks for your Booking.</Text>
+              : <Text style={styles.message_text}>Its your turn now.</Text>} */}
             {this.state.Appointment_No != 1 ?
               <Text style={styles.message_text}>Thanks for your Booking.</Text>
-              : <Text style={styles.message_text}>Its your turn now.</Text>}
+              : this.state.PausedFlag === false ? <Text style={styles.message_text}>Its your turn now.</Text> : null}
           </View>
           <View style={{
             alignItems: 'center',
@@ -329,7 +369,7 @@ class Customer_Ticket extends React.Component {
                 </View>
                 : <Text style={styles.message_text1}>From {moment(new Date(this.state.AST.seconds * 1000 + this.state.AST.nanoseconds / 1000000)).format('hh:mm a')} to {moment(new Date(this.state.AET.seconds * 1000 + this.state.AET.nanoseconds / 1000000)).format('hh:mm a')}</Text>}
             </Text>
-
+            {this.state.PausedFlag == true ? <Text>{this.state.ownerMessage}</Text> : <Text>Queue has been started</Text>}
             <TouchableOpacity
               onPress={() => {
                 Alert.alert(
@@ -337,12 +377,12 @@ class Customer_Ticket extends React.Component {
                   "Do you really want to cancel this appointment",
                   [
                     {
+                      text: "No", onPress: () => { console.log('no deletion') }
+                    },
+                    {
                       text: "Yes", onPress: () => {
                         this.cancel_appointment()
                       }
-                    },
-                    {
-                      text: "No", onPress: () => { console.log('no deletion') }
                     }
                   ],
                   { cancelable: false }
@@ -357,7 +397,7 @@ class Customer_Ticket extends React.Component {
                 borderRadius: 50,
                 justifyContent: 'center',
                 alignItems: 'center',
-                marginTop: 20,
+                marginTop: 15,
                 marginBottom: 20
               }}>
               <Text style={{
@@ -418,6 +458,14 @@ const styles = StyleSheet.create({
     color: '#EA4335',
     fontFamily: 'NotoSans-Regular',
     fontSize: 14,
+    fontWeight: "500",
+    fontStyle: 'normal',
+    textAlign: 'center'
+  },
+  message_text_owner: {
+    color: '#EA4335',
+    fontFamily: 'NotoSans-Regular',
+    fontSize: wp('4'),
     fontWeight: "500",
     fontStyle: 'normal',
     textAlign: 'center'

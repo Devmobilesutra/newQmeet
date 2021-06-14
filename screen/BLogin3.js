@@ -147,16 +147,16 @@ class BLogin3 extends React.Component {
             const qrcode = await this.getQR();
             let options = {
                 html: `
-                <div style="height:180px;display:flex;justify-content:center;">
+                <div style="height:170px;display:flex;justify-content:center;">
                 <div style="display:flex;flex-direction:row">
                     <h2 style="font-size:50px;color:red;font-family: Averia Serif Libre;">Q</h2>
                     <h2 style="font-size:50px;font-family: roboto;">meet</h2>
                 </div>
             </div>
             <div style="height:100px;display:flex;align-items:center;justify-content:center;flex-direction:column">
-                <p style="font-size:20px">Online Appointment Booking App</p>
+                <div style="font-size:20px">Online Appointment Booking App</div>
                 <h1>${this.state.Buisness_name}</h1>
-                <p style="font-size:20px">Scan this QR code</p>
+                <div style="font-size:20px;margin-bottom: 35px;">Scan this QR code</div>
             </div>
             <div style="height:300px;display:flex;align-items:center;justify-content:center;margin:40px auto">
                 <img src="data:image/png;base64,${qrcode}" height="300" width="300" />
@@ -165,8 +165,8 @@ class BLogin3 extends React.Component {
                 <h1>OR</h1>
                 <p style="font-size:16px">Enter mobile Number</p>
                 <h1>${this.state.mobile}</h1>
-                <p style="font-size:16px">Download Qmeet Application to book an Appointment</p>
-                <p style="font-size:16px">www.qmeetbooking.com</p>
+                <p style="font-size:16px">Download Qmeet Application to book an Number</p>
+                <p style="font-size:16px">www.qmeet.in</p>
             </div>            
         `,
                 fileName: `${this.state.Buisness_name}`,

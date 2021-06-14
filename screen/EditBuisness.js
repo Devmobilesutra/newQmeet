@@ -426,7 +426,7 @@ class BLogin2 extends Component {
                         </TouchableOpacity>
                     </Left>
                     <Body style={styles.Header_Body}>
-                        <Title style={styles.Header_Name}>Edit Buisness Details</Title>
+                        <Title style={styles.Header_Name}>Edit Vendor's Details</Title>
                     </Body>
                     <Right style={{ flex: 1 }} />
                 </Header>
@@ -442,7 +442,7 @@ class BLogin2 extends Component {
                         <Text style={{
                             marginLeft: hp('2%'),
                             marginRight: hp('2%')
-                        }}> Edit Your Business Name</Text>
+                        }}> Edit Your Vendor Name</Text>
                         <TextInput
                             value={this.state.Business_Name}
                             onChangeText={(Business_Name) => {

@@ -90,13 +90,13 @@ class qrcode_scanner extends React.Component {
                                 <Image source={require('../Assets/or_line.png')} style={{ width: 300}} />
                             </View>
                             
-                            <Text style={{ alignSelf: 'flex-start', marginLeft: wp('3%') }}> Enter Buisnes Mobile No </Text>
+                            <Text style={{ alignSelf: 'flex-start', marginLeft: wp('3%'), fontFamily: 'Roboto_medium', fontWeight: '700', fontStyle: 'normal' }}> Enter vendor’s mobile number </Text>
                             <TextInput
                                 value={this.state.mobileNo}
                                 onChangeText={(mobileNo) => this.setState({ mobileNo })}
                                 keyboardType="numeric"
                                 maxLength={10}
-                                fontSize={35}
+                                fontSize={wp('9%')}
                                 style={{
                                     width: '90%',
                                     color: '#2570EC',
@@ -110,7 +110,7 @@ class qrcode_scanner extends React.Component {
                                         // this.props.navigation.navigate('confirm_Appointment', { ownerId: this.state.mobileNo });
                                         this.check_availability(this.state.mobileNo);
                                     } else {
-                                        Alert.alert("Please Enter buisess's mobile Number")
+                                        Alert.alert("Please Enter vendor’s mobile Number")
                                     }
                                 }}>
                                 <Text style={{ color: '#FFFFFF' }}>Next</Text>

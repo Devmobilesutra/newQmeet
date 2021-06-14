@@ -22,7 +22,7 @@ class Appointment_Details extends React.Component {
     AET: '',
     AST2: '',
     AET2: '',
-    
+
     buisness_name: ''
   }
   backAction = () => {
@@ -44,6 +44,15 @@ class Appointment_Details extends React.Component {
       "hardwareBackPress",
       this.backAction
     );
+    setTimeout(() => {
+      try {
+        console.log("I am navigating");
+        this.props.navigation.navigate('Customer_Ticket', { ownerId: this.props.route.params.ownerId });
+      }
+      catch (err) {
+        console.log('Some error occured');
+      }
+    }, 6000)
     console.log(this.props.route.params.ownerId)
     const value = await AsyncStorage.getItem('@owner_number');
     console.log("asyc", value)
@@ -65,7 +74,7 @@ class Appointment_Details extends React.Component {
 
             BST2: Shop_data.data().second_buisness_start_time,
             BET2: Shop_data.data().second_buisness_end_time,
-            
+
             AST: Shop_data.data().appointment_start_time,
             AET: Shop_data.data().appointment_end_time,
 
@@ -82,7 +91,7 @@ class Appointment_Details extends React.Component {
 
             BST: Shop_data.data().buisness_start_time,
             BET: Shop_data.data().buisness_end_time,
-            
+
             AST: Shop_data.data().appointment_start_time,
             AET: Shop_data.data().appointment_end_time,
 

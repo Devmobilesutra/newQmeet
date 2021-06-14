@@ -1,0 +1,186 @@
+import React, { Component } from 'react';
+import { Text, View, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { Container, Content, Icon, Card, CardItem, Body, Thumbnail, List, ListItem, Left, Right, Switch } from 'native-base';
+import { heightPercentageToDP, widthPercentageToDP } from 'react-native-responsive-screen';
+import Button from './common-components/Button';
+import TimeModal from "./common-components/timeModal";
+
+export default class businessTime extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            BM1: false,
+            startTime: ''
+        }
+    }
+    toggle() {
+        const { BM1 } = this.state;
+        console.log('this is modal');
+        this.setState({ BM1: !BM1 });
+    }
+    startTime(time) {
+        console.log('Time: ',time);
+    }
+    render() {
+        return (
+            <Container>
+                {/* <View style={styles.headerBar}>
+                    <View style={styles.headerRow}>
+                        <View style={styles.burgerStyle}>
+                            <TouchableOpacity onPress={() => this.props.navigation.navigate('userDashboard')}>
+                                <Icon type="AntDesign" name="arrowleft" />
+                            </TouchableOpacity>
+                        </View>
+                        <View style={{ flex: 5, justifyContent: 'center', alignItems: 'flex-start' }}>
+                            <Text style={styles.header}>Profile Details</Text>
+                        </View>
+                    </View>
+                </View> */}
+                <Content contentContainerStyle={styles.mainView}>
+                    <View style={styles.timeHeadings}>
+                        <Text style={{ fontFamily: 'NotoSans-Regular', fontWeight: '500', fontStyle: 'normal', fontSize: widthPercentageToDP('7') }}>Business time</Text>
+                        <Text style={{ fontFamily: 'NotoSans-Regular', fontWeight: '500', fontStyle: 'normal', fontSize: widthPercentageToDP('4.3') }}>Time, when you actually start your work</Text>
+                    </View>
+                    <View style={{ borderBottomColor: '#BDBDBD', borderBottomWidth: 1 }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#BDBDBD', paddingBottom: heightPercentageToDP('2'), paddingTop: heightPercentageToDP('2') }}>
+                            <Text style={{ flex: 8, fontFamily: 'NotoSans-Regular', fontWeight: '500', fontStyle: 'normal', fontSize: widthPercentageToDP('4.3') }}>Time 1 (Morning to Afteroon)</Text>
+                            <Switch value={true} />
+                        </View>
+                        <View style={styles.Time}>
+                            <View style={styles.box}>
+                                <TouchableOpacity onPress={() => this.toggle()}>
+                                    <Text style={{ flex: 6, fontFamily: 'Roboto', fontWeight: '700', fontStyle: 'normal', fontSize: widthPercentageToDP('4.3') }}>Start time</Text>
+                                    <Text style={{ flex: 8, fontFamily: 'Roboto', fontWeight: '500', fontStyle: 'normal', fontSize: widthPercentageToDP('5') }}>10:00 AM</Text>
+                                </TouchableOpacity>
+                            </View>
+                            <View style={styles.box}>
+                                <Text style={{ flex: 6, fontFamily: 'Roboto', fontWeight: '700', fontStyle: 'normal', fontSize: widthPercentageToDP('4.3') }}>End time</Text>
+                                <Text style={{ flex: 8, fontFamily: 'Roboto', fontWeight: '500', fontStyle: 'normal', fontSize: widthPercentageToDP('5') }}>01:00 PM</Text>
+                            </View>
+                        </View>
+                    </View>
+                    <View style={{ borderBottomColor: '#BDBDBD', borderBottomWidth: 1 }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#BDBDBD', paddingBottom: heightPercentageToDP('2'), paddingTop: heightPercentageToDP('2') }}>
+                            <Text style={{ flex: 8, fontFamily: 'NotoSans-Regular', fontWeight: '500', fontStyle: 'normal', fontSize: widthPercentageToDP('4.3') }}>Time 2 (Afteroon to Evening)</Text>
+                            <Switch value={true} />
+                        </View>
+                        <View style={styles.Time}>
+                            <View style={styles.box}>
+                                <Text style={{ flex: 6, fontFamily: 'Roboto', fontWeight: '700', fontStyle: 'normal', fontSize: widthPercentageToDP('4.3') }}>Start time</Text>
+                                <Text style={{ flex: 8, fontFamily: 'Roboto', fontWeight: '500', fontStyle: 'normal', fontSize: widthPercentageToDP('5') }}>04:00 PM</Text>
+                            </View>
+                            <View style={styles.box}>
+                                <Text style={{ flex: 6, fontFamily: 'Roboto', fontWeight: '700', fontStyle: 'normal', fontSize: widthPercentageToDP('4.3') }}>End time</Text>
+                                <Text style={{ flex: 8, fontFamily: 'Roboto', fontWeight: '500', fontStyle: 'normal', fontSize: widthPercentageToDP('5') }}>10:00 PM</Text>
+                            </View>
+                        </View>
+                    </View>
+                    <View style={styles.buttonView}>
+                        <TouchableOpacity
+                            onPress={() => this.props.navigation.navigate('businessForm', { screen: 'Business Details' })}
+                            style={{ justifyContent: 'center', alignItems: 'center', backgroundColor: '#2570EC33', borderRadius: 27, height: heightPercentageToDP('9'), width: widthPercentageToDP('40') }}>
+                            <Text style={{ color: '#2570EC', fontFamily: 'Roboto', fontWeight: '400', fontStyle: 'normal' }}>Back</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={() => this.props.navigation.navigate('businessForm', { screen: 'Appointment Time' })}
+                            style={{ justifyContent: 'center', alignItems: 'center', backgroundColor: '#2570EC', borderRadius: 27, height: heightPercentageToDP('9'), width: widthPercentageToDP('40') }}>
+                            <Text style={{ color: '#FFFFFF', fontFamily: 'Roboto', fontWeight: '400', fontStyle: 'normal' }}>Next</Text>
+                        </TouchableOpacity>
+                    </View>
+
+
+                    {/* ---------------Modal Section--------------- */}
+
+                    {/* First Half of Buisness */}
+                    <TimeModal modal={this.state.BM1} startTime={this.startTime} toggle={this.toggle} />
+                    {/* Second Half of Business */}
+                    {/* <TimeModal modal={this.state.BM2} toggle={this.toggle} ST={this.Business_ST2} ET={this.Business_ET2} number={2} />
+                    <TimeModal modal={this.state.AM1} toggle={this.toggle} ST={this.Appointment_ST} ET={this.Appointment_ET} number={3} />
+                    <TimeModal modal={this.state.AM2} toggle={this.toggle} ST={this.Appointment_ST2} ET={this.Appointment_ET2} number={4} /> */}
+                    {/* ---------------Modal Section End--------------- */}
+                </Content>
+            </Container>
+        )
+    }
+}
+
+const styles = StyleSheet.create({
+    header: {
+        color: '#2570EC',
+        fontFamily: 'NotoSans-Regular',
+        fontStyle: 'normal',
+        fontSize: widthPercentageToDP('6'),
+        fontWeight: 'bold',
+        lineHeight: 21.79,
+        textAlign: 'center'
+    },
+    headerBar: {
+        width: widthPercentageToDP('95'),
+        height: 60,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginLeft: widthPercentageToDP('3'),
+        marginRight: widthPercentageToDP('3'),
+        borderBottomWidth: 1,
+        borderColor: '#D4D4D4'
+    },
+    header: {
+        color: '#2570EC',
+        fontFamily: 'NotoSans-Regular',
+        fontStyle: 'normal',
+        fontSize: widthPercentageToDP('6'),
+        fontWeight: 'bold'
+    },
+    headerimageView: {
+        width: widthPercentageToDP('13'),
+        height: heightPercentageToDP('10'),
+        resizeMode: 'contain',
+    },
+    headerimageViewTitle: {
+        width: widthPercentageToDP('40'),
+        height: heightPercentageToDP('5'),
+        resizeMode: 'contain',
+    },
+    headerRow: {
+        flexDirection: 'row'
+    },
+    burgerStyle: {
+        flex: 2,
+        // backgroundColor: 'green'
+    },
+    mainView: {
+        padding: widthPercentageToDP('5'),
+        // backgroundColor: 'green'
+    },
+    mainList: {
+        flexDirection: 'row',
+    },
+    buttonView: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: heightPercentageToDP('15'),
+    },
+    timeHeadings: {
+        borderBottomWidth: 1,
+        borderBottomColor: '#BDBDBD',
+        paddingBottom: heightPercentageToDP('3')
+    },
+    Time: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingTop: heightPercentageToDP('3'),
+        paddingBottom: heightPercentageToDP('3'),
+        // backgroundColor: 'orange'
+    },
+    box: {
+        flexDirection: 'column',
+        borderRadius: 15,
+        borderWidth: 1,
+        borderColor: '#BDBDBD',
+        justifyContent: 'center',
+        alignItems: 'flex-start',
+        padding: widthPercentageToDP('3'),
+        width: widthPercentageToDP('40'),
+        height: heightPercentageToDP('10')
+    }
+});

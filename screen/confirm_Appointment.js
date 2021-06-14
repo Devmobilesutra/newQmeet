@@ -33,6 +33,37 @@ const styles = StyleSheet.create({
   content: {
     padding: 20
   },
+  Appointment_header: {
+    fontFamily: 'Roboto_medium',
+    fontWeight: '700',
+    fontStyle: 'normal',
+    fontSize: 14,
+    alignSelf: 'center'
+  },
+  Appointment_content: {
+    flexDirection: 'row',
+    fontFamily: 'Roboto_medium',
+    fontWeight: '400',
+    fontStyle: 'normal',
+    fontSize: 14,
+    alignSelf: 'center'
+  },
+  Working_header: {
+    fontFamily: 'Roboto_medium',
+    fontWeight: '700',
+    fontStyle: 'normal',
+    fontSize: 14,
+    alignSelf: 'center'
+  },
+  Working_content: {
+    flexDirection: 'row',
+    fontFamily: 'Roboto_medium',
+    fontWeight: '400',
+    fontStyle: 'normal',
+    fontSize: 14,
+    alignSelf: 'center'
+  },
+
 })
 
 class confirm_Appointment extends React.Component {
@@ -98,6 +129,9 @@ class confirm_Appointment extends React.Component {
 
           B_startTime: snapshot.data().buisness_start_time,
           B_endTime: snapshot.data().buisness_end_time,
+          B_startTime2: snapshot.data().second_buisness_start_time,
+          B_endTime2: snapshot.data().second_buisness_end_time,
+
           A_startTime: snapshot.data().appointment_start_time,
           A_endTime: snapshot.data().appointment_end_time,
 
@@ -110,7 +144,10 @@ class confirm_Appointment extends React.Component {
           user_number: snap.data().mobile_no,
           profileImage_url: snap.data().imageurl,
           user_token: snap.data().user_token,
-          user_name: snap.data().name
+          user_name: snap.data().name,
+
+          //loading state
+          loader: !this.state.loader
         })
       } else {
         this.setState({
@@ -138,7 +175,10 @@ class confirm_Appointment extends React.Component {
           user_number: snap.data().mobile_no,
           profileImage_url: snap.data().imageurl,
           user_token: snap.data().user_token,
-          user_name: snap.data().name
+          user_name: snap.data().name,
+
+          //loading state
+          loader: !this.state.loader
         })
       }
 
@@ -174,7 +214,7 @@ class confirm_Appointment extends React.Component {
       );
       if (shift) {
         if (moment(start_time).format('HH:mm:ss') < moment().format('HH:mm:ss') && moment().format('HH:mm:ss') < moment(end_time).format('HH:mm:ss')) {
-          console.log("1 first half");
+          console.log("1 first half", moment(start_time).format('HH:mm:ss') < moment().format('HH:mm:ss'));
           this.setState({ can_make_app: true });
         } else if (moment(start_time2).format('HH:mm:ss') < moment().format('HH:mm:ss') && moment().format('HH:mm:ss') < moment(end_time2).format('HH:mm:ss')) {
           console.log("2 second half");
@@ -183,11 +223,11 @@ class confirm_Appointment extends React.Component {
           if (moment(end_time).format('HH:mm:ss') < moment().format('HH:mm:ss') && moment().format('HH:mm:ss') < moment(start_time2).format('HH:mm:ss')) {
             console.log(" Can't make an appointment 1");
             this.setState({
-              message: `${shop_name}'s Online appointment time has over. Online appointment time for First Half will be from ${moment(start_time).format('HH:mm A')} to ${moment(end_time).format('HH:mm A')} and for Second Half will be from ${moment(start_time2).format('HH:mm A')} to ${moment(end_time2).format('HH:mm A')}`
+              message: `${shop_name}'s Online appointment time has over. Online appointment time for First Half will be from ${moment(start_time).format('hh:mm A')} to ${moment(end_time).format('hh:mm A')} and for Second Half will be from ${moment(start_time2).format('hh:mm A')} to ${moment(end_time2).format('hh:mm A')}`
             });
           } else {
             console.log(" Can't make an appointment 2");
-            this.setState({ message: `${shop_name}'s Online appointment time has over. Online appointment time for First Half will be from ${moment(start_time).format('HH:mm A')} to ${moment(end_time).format('HH:mm A')} and for Second Half will be from ${moment(start_time2).format('HH:mm A')} to ${moment(end_time2).format('HH:mm A')}` });
+            this.setState({ message: `${shop_name}'s Online appointment time has over.${'\n\n'} Online Booking Time.${'\n'} First half : ${moment(start_time).format('hh:mm A')} to ${moment(end_time).format('hh:mm A')}${'\n'} Second half : ${moment(start_time2).format('hh:mm A')} to ${moment(end_time2).format('hh:mm A')}` });
           }
         }
       } else {
@@ -195,13 +235,13 @@ class confirm_Appointment extends React.Component {
           this.setState({ can_make_app: true })
         } else {
           this.setState({
-            message: `${shop_name}'s Online appointment time has over. Online appointment time will be from ${moment(start_time).format('HH:mm A')} to ${moment(end_time).format('HH:mm A')}`
+            message: `${shop_name}'s Online appointment time has over.${'\n\n'} Online Booking Time.${'\n'} First half : ${moment(start_time).format('hh:mm A')} to ${moment(end_time).format('hh:mm A')}`
           });
         }
       }
 
     } else if (availability === false) {
-      this.setState({ message: `Currently online appointment has stopped by business ${shop_name}` })
+      this.setState({ message: `Currently online appointment has stopped by ${'\n'} ${shop_name}` })
     }
     this.setState({ loader: false })
   }
@@ -289,6 +329,7 @@ class confirm_Appointment extends React.Component {
   }
 
   render() {
+    const { A_startTime, A_endTime, A_startTime2, A_endTime2, B_startTime, B_startTime2, B_endTime, B_endTime2, shift } = this.state;
     return (
       <Container>
         <Modal transparent={true} visible={this.state.loader} >
@@ -340,6 +381,7 @@ class confirm_Appointment extends React.Component {
 
           {this.state.can_make_app === true ?
             <Content >
+              <View style={{ borderBottomWidth: 1, borderBottomColor: '#E4E4E4', marginLeft: 10, marginRight: 10 }}></View>
               <Text style={{ fontFamily: 'Roboto_medium', fontWeight: '700', fontSize: 13, fontStyle: 'normal', marginLeft: wp('5%'), marginTop: hp('3%'), color: 'black' }}>
                 Enter your name
                 </Text>
@@ -356,6 +398,34 @@ class confirm_Appointment extends React.Component {
                   borderColor: 'blue',
                   borderBottomWidth: 1,
                 }} />
+
+              {/* ====== Appointment Time display section ======== */}
+              <View style={{ justifyContent: 'center', alignItems: 'center', alignSelf: 'center' }}>
+                <Text style={styles.Appointment_header}>Online number booking time.</Text>
+                <View style={styles.Appointment_content}>
+                  <Text>Start From : </Text><Text>{moment(new Date(A_startTime.seconds * 1000 + A_startTime.nanoseconds / 1000000)).format('hh:mm A')}{" "}</Text>
+                  <Text>End At : </Text><Text>{moment(new Date(A_endTime.seconds * 1000 + A_endTime.nanoseconds / 1000000)).format('hh:mm A')}</Text>
+                </View>
+                {/* <Text>Second Appointment Times</Text> */}
+                {shift === true ? <View style={styles.Appointment_content}>
+                  <Text>Start From : </Text><Text>{moment(new Date(A_startTime2.seconds * 1000 + A_startTime2.nanoseconds / 1000000)).format('hh:mm A')}{" "}</Text>
+                  <Text>End At : </Text><Text>{moment(new Date(A_endTime2.seconds * 1000 + A_endTime2.nanoseconds / 1000000)).format('hh:mm A')}</Text>
+                </View> : null}
+              </View>
+              <View style={{ justifyContent: 'center', alignItems: 'center', alignSelf: 'center' }}>
+                <Text style={styles.Appointment_header}>Working time.</Text>
+                <View style={styles.Appointment_content}>
+                  <Text>Start From : </Text><Text>{moment(new Date(B_startTime.seconds * 1000 + B_startTime.nanoseconds / 1000000)).format('hh:mm A')}{" "}</Text>
+                  <Text>End At : </Text><Text>{moment(new Date(B_endTime.seconds * 1000 + B_endTime.nanoseconds / 1000000)).format('hh:mm A')}</Text>
+                </View>
+                {/* <Text>Second Appointment Times</Text> */}
+                {shift === true ? <View style={styles.Appointment_content}>
+                  <Text>Start From : </Text><Text>{moment(new Date(B_startTime2.seconds * 1000 + B_startTime2.nanoseconds / 1000000)).format('hh:mm A')}{" "}</Text>
+                  <Text>End At : </Text><Text>{moment(new Date(B_endTime2.seconds * 1000 + B_endTime2.nanoseconds / 1000000)).format('hh:mm A')}</Text>
+                </View> : null}
+              </View>
+
+              {/* ======= Confirm Appointment Button ===== */}
               <View style={{ justifyContent: 'center', alignItems: 'center' }}>
                 <TouchableOpacity
                   onPress={() => this.confirm_Appointment()}
@@ -374,8 +444,8 @@ class confirm_Appointment extends React.Component {
               </View>
             </Content>
             :
-            <Content contentContainerStyle={{ justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%', padding: wp('3%') }}>
-              <Text style={{ color: 'red', fontSize: 20, textAlign: 'center' }}>{this.state.message}</Text>
+            <Content contentContainerStyle={{ alignItems: 'center', padding: wp('3%') }}>
+              <Text style={{ color: 'red', fontSize: wp('6%'), textAlign: 'center' }}>{this.state.message}</Text>
             </Content>}
         </Container>
       </Container>

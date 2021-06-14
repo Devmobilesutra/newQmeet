@@ -109,9 +109,9 @@ class BLogin2 extends Component {
 
   async signUp1() {
     const { BST1, BST2, BET1, BET2, AST1, AST2, AET1, AET2, shift } = this.state;
-    if (!BST1 && !BET1) {
+    if (!BST1) {
       Alert.alert(
-        "", "Set Business start time or Business End time of first half",
+        "", "Set Business start time of first half",
         [{
           color: '#fff',
           text: "OK",
@@ -120,9 +120,9 @@ class BLogin2 extends Component {
         }]
       );
     } else {
-      if (!AST1 && !AET1) {
+      if (!BET1) {
         Alert.alert(
-          "", "Set Appointment start time or Appointment End time of first half",
+          "", "Set Business End time of first half",
           [{
             color: '#fff',
             text: "OK",
@@ -131,11 +131,20 @@ class BLogin2 extends Component {
           }]
         );
       } else {
-        if (shift) {
-          // for second half
-          if (!BST2 && !BET2) {
+        if (!AST1) {
+          Alert.alert(
+            "", "Set Appointment start time of first half",
+            [{
+              color: '#fff',
+              text: "OK",
+              onPress: () => console.log("Cancel Pressed"),
+              style: "cancel",
+            }]
+          );
+        } else {
+          if (!AET1) {
             Alert.alert(
-              "", "Set Business start time or business end of second half",
+              "", "Set Appointment End time of first half",
               [{
                 color: '#fff',
                 text: "OK",
@@ -144,20 +153,11 @@ class BLogin2 extends Component {
               }]
             );
           } else {
-            if (!AST2 && !AET2) {
-              Alert.alert(
-                "", "Set Appointment start time or Appointment End time of Second half",
-                [{
-                  color: '#fff',
-                  text: "OK",
-                  onPress: () => console.log("Cancel Pressed"),
-                  style: "cancel",
-                }]
-              );
-            } else {
-              if (BET1.getTime() < AET1.getTime()) {
+            if (shift) {
+              // for second half
+              if (!BST2) {
                 Alert.alert(
-                  "", "Appointment End time should be less than Buisness End Time of First Half",
+                  "", "Set Business start time second half",
                   [{
                     color: '#fff',
                     text: "OK",
@@ -166,9 +166,9 @@ class BLogin2 extends Component {
                   }]
                 );
               } else {
-                if (BET2.getTime() < AET2.getTime()) {
+                if (!BET2) {
                   Alert.alert(
-                    "", "Appointment End time should be less than Buisness End Time of Second Half",
+                    "", "Set Business end time of second half",
                     [{
                       color: '#fff',
                       text: "OK",
@@ -176,18 +176,188 @@ class BLogin2 extends Component {
                       style: "cancel",
                     }]
                   );
-                  // Alert.alert('Set Appointment End time should be less than Buisness End Time');
                 } else {
-                  let download_url;
-                  if (this.props.route.params.fileName) {
-                    console.log("fileName regular :", this.props.route.params.fileName);
-                    let reference = storage().ref(this.props.route.params.fileName);
-                    let task = reference.putFile(this.props.route.params.imagePath);
-                    task.then(async (response) => {
-                      console.log('Image uploaded to the bucket!');
-                      download_url = await reference.getDownloadURL();
-                    });
+                  if (!AST2) {
+                    Alert.alert(
+                      "", "Set Appointment start time of Second half",
+                      [{
+                        color: '#fff',
+                        text: "OK",
+                        onPress: () => console.log("Cancel Pressed"),
+                        style: "cancel",
+                      }]
+                    );
+                  } else {
+                    if (!AET2) {
+                      Alert.alert(
+                        "", "Set Appointment start time or Appointment End time of Second half",
+                        [{
+                          color: '#fff',
+                          text: "OK",
+                          onPress: () => console.log("Cancel Pressed"),
+                          style: "cancel",
+                        }]
+                      );
+                    } else {
+                      if (BET1.getTime() < AET1.getTime()) {
+                        Alert.alert(
+                          "", "Appointment End time should be less than Buisness End Time of First Half",
+                          [{
+                            color: '#fff',
+                            text: "OK",
+                            onPress: () => console.log("Cancel Pressed"),
+                            style: "cancel",
+                          }]
+                        );
+                      } else {
+                        if (BET2.getTime() < AET2.getTime()) {
+                          Alert.alert(
+                            "", "Appointment End time should be less than Buisness End Time of Second Half",
+                            [{
+                              color: '#fff',
+                              text: "OK",
+                              onPress: () => console.log("Cancel Pressed"),
+                              style: "cancel",
+                            }]
+                          );
+                          // Alert.alert('Set Appointment End time should be less than Buisness End Time');
+                        } else {
+                          let download_url;
+                          if (this.props.route.params.fileName) {
+                            // with image
+                            this.setState({ loader: true });
+                            console.log("fileName regular :", this.props.route.params.fileName);
+                            let reference = storage().ref(this.props.route.params.fileName);
+                            let task = reference.putFile(this.props.route.params.imagePath);
+                            task.then(async (response) => {
+                              console.log('Image uploaded to the bucket!', await reference.getDownloadURL());
+                              download_url = reference.getDownloadURL().then(d => {
+                                console.log('url', d);
+                                firestore().collection('owner').doc(this.props.route.params.owner_number).set({
+                                  user_Id: this.props.route.params.userId,
+                                  Buisness_name: this.props.route.params.buisness_Name,
+
+                                  buisness_start_time: BST1,
+                                  buisness_end_time: BET1,
+                                  appointment_start_time: AST1,
+                                  appointment_end_time: AET1,
+
+                                  second_buisness_start_time: BST2,
+                                  second_buisness_end_time: BET2,
+                                  second_appointment_start_time: AST2,
+                                  second_appointment_end_time: AET2,
+
+                                  image_url: d ? d : '',
+                                  Availablity: true,
+                                  shift: shift,
+
+                                  flag: {
+                                    status: true,
+                                    message: ''
+                                  }
+                                }).then(async () => {
+                                  console.log('succefull signup second half');
+                                  const type = await AsyncStorage.setItem('@user_type', '2');// 1 for user and two for owner. by default all are users
+                                  console.log("type second time :", await AsyncStorage.getItem('@user_type'));
+                                  this.setState({ loader: false })
+                                  this.props.navigation.navigate('BLogin3');
+                                })
+                              });
+                            });
+                          } else {
+                            // without image
+                            this.setState({ loader: true });
+                            console.log("Without image second time")
+                            firestore().collection('owner').doc(this.props.route.params.owner_number).set({
+                              user_Id: this.props.route.params.userId,
+                              Buisness_name: this.props.route.params.buisness_Name,
+
+                              buisness_start_time: BST1,
+                              buisness_end_time: BET1,
+                              appointment_start_time: AST1,
+                              appointment_end_time: AET1,
+
+                              second_buisness_start_time: BST2,
+                              second_buisness_end_time: BET2,
+                              second_appointment_start_time: AST2,
+                              second_appointment_end_time: AET2,
+
+                              image_url: '',
+                              Availablity: true,
+                              shift: shift,
+                              
+                              flag: {
+                                status: true,
+                                message: ''
+                              }
+                            }).then(async () => {
+                              console.log('succefull signup second half');
+                              const type = await AsyncStorage.setItem('@user_type', '2');// 1 for user and two for owner. by default all are users
+                              console.log("type second time :", await AsyncStorage.getItem('@user_type'));
+                              this.setState({ loader: false })
+                              this.props.navigation.navigate('BLogin3');
+                            })
+                          }
+                        }
+                      }
+
+                    }
                   }
+                }
+              }
+            } else {
+              if (BET1.getTime() < AET1.getTime()) {
+                Alert.alert(
+                  "", "Appointment End time should be less than Buisness End Time",
+                  [{
+                    color: '#fff',
+                    text: "OK",
+                    onPress: () => console.log("Cancel Pressed"),
+                    style: "cancel",
+                  }]
+                );
+              } else {
+                let download_url;
+                if (this.props.route.params.fileName) {
+                  //With image
+                  this.setState({ loader: true })
+                  console.log("fileName regular :", this.props.route.params.fileName);
+                  let reference = storage().ref(this.props.route.params.fileName);
+                  let task = reference.putFile(this.props.route.params.imagePath);
+                  task.then(async (response) => {
+                    console.log('Image uploaded to the bucket!',);
+                    download_url = reference.getDownloadURL().then(d => {
+                      console.log("url", d);
+                      firestore().collection('owner').doc(this.props.route.params.owner_number).set({
+                        user_Id: this.props.route.params.userId,
+                        Buisness_name: this.props.route.params.buisness_Name,
+
+                        buisness_start_time: BST1,
+                        buisness_end_time: BET1,
+                        appointment_start_time: AST1,
+                        appointment_end_time: AET1,
+
+                        image_url: d ? d : '',
+                        Availablity: true,
+                        shift: shift,
+                        
+                        flag: {
+                          status: true,
+                          message: ''
+                        }
+                      }).then(async () => {
+                        console.log('succefull signup First Half');
+                        const type = await AsyncStorage.setItem('@user_type', '2');// 1 for user and two for owner. by default all are users
+                        console.log("type one time :", await AsyncStorage.getItem('@user_type'));
+                        this.setState({ loader: false })
+                        this.props.navigation.navigate('BLogin3');
+                      })
+                    });
+                  });
+                } else {
+                  //Without image
+                  this.setState({ loader: true })
+                  console.log("Without image first time")
                   firestore().collection('owner').doc(this.props.route.params.owner_number).set({
                     user_Id: this.props.route.params.userId,
                     Buisness_name: this.props.route.params.buisness_Name,
@@ -197,65 +367,25 @@ class BLogin2 extends Component {
                     appointment_start_time: AST1,
                     appointment_end_time: AET1,
 
-                    second_buisness_start_time: BST2,
-                    second_buisness_end_time: BET2,
-                    second_appointment_start_time: AST2,
-                    second_appointment_end_time: AET2,
-
-                    image_url: download_url ? download_url : '',
+                    image_url: '',
                     Availablity: true,
-                    shift: shift
+                    shift: shift,
+                    
+                    flag: {
+                      status: true,
+                      message: ''
+                    }
                   }).then(async () => {
-                    console.log('succefull signup');
+                    console.log('succefull signup First Half');
                     const type = await AsyncStorage.setItem('@user_type', '2');// 1 for user and two for owner. by default all are users
-                    console.log("type :", await AsyncStorage.getItem('@user_type'));
+                    console.log("type one time :", await AsyncStorage.getItem('@user_type'));
+                    this.setState({ loader: false })
                     this.props.navigation.navigate('BLogin3');
                   })
                 }
               }
-
             }
-          }
-        } else {
-          if (BET1.getTime() < AET1.getTime()) {
-            Alert.alert(
-              "", "Appointment End time should be less than Buisness End Time",
-              [{
-                color: '#fff',
-                text: "OK",
-                onPress: () => console.log("Cancel Pressed"),
-                style: "cancel",
-              }]
-            );
-          } else {
-            let download_url;
-            if (this.props.route.params.fileName) {
-              console.log("fileName regular :", this.props.route.params.fileName);
-              let reference = storage().ref(this.props.route.params.fileName);
-              let task = reference.putFile(this.props.route.params.imagePath);
-              task.then(async (response) => {
-                console.log('Image uploaded to the bucket!');
-                download_url = await reference.getDownloadURL();
-              });
-            }
-            firestore().collection('owner').doc(this.props.route.params.owner_number).set({
-              user_Id: this.props.route.params.userId,
-              Buisness_name: this.props.route.params.buisness_Name,
-
-              buisness_start_time: BST1,
-              buisness_end_time: BET1,
-              appointment_start_time: AST1,
-              appointment_end_time: AET1,
-
-              image_url: download_url ? download_url : '',
-              Availablity: true,
-              shift: shift
-            }).then(async () => {
-              console.log('succefull signup');
-              const type = await AsyncStorage.setItem('@user_type', '2');// 1 for user and two for owner. by default all are users
-              console.log("type :", await AsyncStorage.getItem('@user_type'));
-              this.props.navigation.navigate('BLogin3');
-            })
+            // }
           }
         }
       }

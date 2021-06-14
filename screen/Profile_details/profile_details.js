@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Accordion, Container, Header, Title, Content, Footer, FooterTab, List, ListItem, Left, Right, Body, Icon, Text, View, Card, CardItem, Tab, Tabs, TabHeading, Thumbnail } from 'native-base';
-import { BackHandler, Button, StyleSheet, Modal, SafeAreaView, Image, TextInput, TouchableOpacity, Alert, } from 'react-native';
+import { BackHandler, Button, StyleSheet, Modal, SafeAreaView, Image, TextInput, TouchableOpacity, ToastAndroid, Alert, } from 'react-native';
 import {
     widthPercentageToDP as wp,
     heightPercentageToDP as hp,
@@ -21,7 +21,8 @@ class profile_details extends Component {
             user_name: '',
             user_data: '',
             switch: false,
-            isLoader: false
+            isLoader: false,
+            SetAppointment: ''
         };
     }
     async get_localData() {
@@ -39,8 +40,10 @@ class profile_details extends Component {
     componentWillUnmount() {
         BackHandler.removeEventListener("hardwareBackPress", this.backAction);
     }
-    componentDidMount() {
+    async componentDidMount() {
         BackHandler.addEventListener("hardwareBackPress", this.backAction);
+        let SetAppointment = await AsyncStorage.getItem('@SetAppointment');
+        console.log("SetAppointment", SetAppointment);
         this.get_localData()
             .then(() => {
                 console.log("------------", this.state.ownerId)
@@ -56,7 +59,10 @@ class profile_details extends Component {
                                         user_data: e.data(),
                                         user_name: e.data().name,
                                         mobile_no: e.data().mobile_no,
-                                        user_profile: e.data().imageurl
+                                        user_profile: e.data().imageurl,
+
+                                        //Set Appointment for (stopping user from making another appointment)
+                                        SetAppointment: SetAppointment
                                     })
                                 })
                             }
@@ -67,15 +73,15 @@ class profile_details extends Component {
             })
     }
     deleteAccount() {
-        Alert.alert("Hold On!", "Do you really want to delete your account?", 
-        [
-            {
-                text: "No",
-                onPress: () => null,
-                style: "cancel"
-            },
-            { text: "YES", onPress: () => this.deleteAccount1() }
-        ]);
+        Alert.alert("Hold On!", "Do you really want to delete your account?",
+            [
+                {
+                    text: "No",
+                    onPress: () => null,
+                    style: "cancel"
+                },
+                { text: "YES", onPress: () => this.deleteAccount1() }
+            ]);
     }
     async deleteAccount1() {
         // deleting user from system
@@ -107,6 +113,11 @@ class profile_details extends Component {
             const type = await AsyncStorage.clear()
         }
 
+    }
+    clickedAlert() {
+        return (
+            ToastAndroid.show("You have booked an Appointment, please let it complete first", ToastAndroid.SHORT)
+        )
     }
     render() {
         return (
@@ -144,7 +155,8 @@ class profile_details extends Component {
                         <ListItem thumbnail>
                             <Body>
                                 <TouchableOpacity
-                                    onPress={() => { this.props.navigation.navigate('qrcode_scanner') }}
+                                    onPress={() => { this.state.SetAppointment ? ToastAndroid.show("You already have one booking", ToastAndroid.SHORT, ToastAndroid.CENTER) : this.props.navigation.navigate('qrcode_scanner') }}
+                                // disabled={this.state.SetAppointment === true ? false : true}
                                 >
                                     <Text style={{ fontStyle: 'normal', fontFamily: 'NotoSans', fontWeight: '500', fontSize: 16 }}>Book appointment</Text>
                                 </TouchableOpacity>
@@ -160,6 +172,20 @@ class profile_details extends Component {
                                     <Text style={{ fontStyle: 'normal', fontFamily: 'NotoSans', fontWeight: '500', fontSize: 16 }}>Business sign-up</Text>
                                 </TouchableOpacity>
                             </Body>
+                        </ListItem>
+                    </List>
+                    <List>
+                        <ListItem>
+                            <Body>
+                                <TouchableOpacity onPress={() => { this.props.navigation.navigate('Contact_Us_U') }}>
+                                    <Text style={{ fontStyle: 'normal', fontFamily: 'NotoSans', fontWeight: '500', fontSize: 16 }}>Contact Us</Text>
+                                </TouchableOpacity>
+                            </Body>
+                            <Right>
+                                <TouchableOpacity onPress={() => { this.props.navigation.navigate('Contact_Us_U') }}>
+                                    <RN_Icon name="right" size={30} color="#000000" />
+                                </TouchableOpacity>
+                            </Right>
                         </ListItem>
                     </List>
                 </Content>

@@ -202,6 +202,21 @@ class profile_details_2 extends Component {
                             </Right>
                         </ListItem>
                     </List>
+                    {/* ----------------------------- Contact Us Page ---------------------------------------------------------- */}
+                    <List>
+                        <ListItem>
+                            <Body>
+                                <TouchableOpacity onPress={() => { this.props.navigation.navigate('Contact_Us') }}>
+                                    <Text style={{ fontStyle: 'normal', fontFamily: 'NotoSans', fontWeight: '500', fontSize: 16 }}>Contact Us</Text>
+                                </TouchableOpacity>
+                            </Body>
+                            <Right>
+                                <TouchableOpacity onPress={() => { this.props.navigation.navigate('Contact_Us') }}>
+                                    <RN_Icon name="right" size={30} color="#000000" />
+                                </TouchableOpacity>
+                            </Right>
+                        </ListItem>
+                    </List>
                     {/* ----------------------------- Allow Online Booking ---------------------------------------------------------- */}
                     <List>
                         <ListItem>

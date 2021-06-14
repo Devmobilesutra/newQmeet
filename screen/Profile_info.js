@@ -160,6 +160,7 @@ class Profile_info extends React.Component {
 
     getPlatformURI(imagePath) {
         let imgSource = imagePath;
+        console.log("imagePath: ", imagePath);
         if (isNaN(imagePath)) {
             imgSource = { uri: this.state.imagePath };
             if (Platform.OS == 'android') {

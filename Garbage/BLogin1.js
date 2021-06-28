@@ -155,7 +155,7 @@ class BLogin1 extends React.Component {
                     <ActivityIndicator color='#2570EC' size='large' />
                 </Modal>
                 {/* ------------------------- Header Bar ----------------------------------- */}
-                {/* <Header style={styles.header_bg} androidStatusBarColor="grey">
+                <Header style={styles.header_bg} androidStatusBarColor="grey">
                     <Left style={{ flex: 1 }}>
                         <TouchableOpacity onPress={() => { this.props.navigation.navigate('Book_Appointment') }}>
                             <RN_Icon name='menu' size={30} color="#000" />
@@ -165,7 +165,7 @@ class BLogin1 extends React.Component {
                         <Title style={styles.Header_Name}>Business sign-up</Title>
                     </Body>
                     <Right style={{ flex: 1 }} />
-                </Header> */}
+                </Header>
                 {/* ----------------------- Body Of Screen ------------------------------- */}
                 <Container>
                     <Content contentContainerStyle={styles.content}>

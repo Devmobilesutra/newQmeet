@@ -191,12 +191,14 @@ class profile_details_2 extends Component {
                     <List>
                         <ListItem>
                             <Body>
-                                <TouchableOpacity onPress={() => { this.props.navigation.navigate('EditBuisness') }}>
-                                    <Text style={{ fontStyle: 'normal', fontFamily: 'NotoSans', fontWeight: '500', fontSize: 16 }}>Business Details</Text>
+                                {/* <TouchableOpacity onPress={() => { this.props.navigation.navigate('EditBuisness') }}> */}
+                                <TouchableOpacity onPress={() => { this.props.navigation.navigate('editBusinessForm') }}>
+                                    <Text style={{ fontStyle: 'normal', fontFamily: 'NotoSans', fontWeight: '500', fontSize: 16 }}>Edit business details</Text>
                                 </TouchableOpacity>
                             </Body>
                             <Right>
-                                <TouchableOpacity onPress={() => { this.props.navigation.navigate('EditBuisness') }}>
+                                {/* <TouchableOpacity onPress={() => { this.props.navigation.navigate('EditBuisness') }}> */}
+                                <TouchableOpacity onPress={() => { this.props.navigation.navigate('editBusinessForm') }}>
                                     <RN_Icon name="right" size={30} color="#000000" />
                                 </TouchableOpacity>
                             </Right>

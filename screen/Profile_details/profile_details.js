@@ -168,7 +168,7 @@ class profile_details extends Component {
                         <ListItem thumbnail>
                             <Body>
                                 {/* <Text style={{ fontStyle: 'normal', fontFamily: 'NotoSans', fontWeight: '500', fontSize: 13 }}>Business sign-up</Text> */}
-                                <TouchableOpacity onPress={() => this.props.navigation.navigate('BLogin1')}>
+                                <TouchableOpacity onPress={() => this.props.navigation.navigate('businessForm')}>
                                     <Text style={{ fontStyle: 'normal', fontFamily: 'NotoSans', fontWeight: '500', fontSize: 16 }}>Business sign-up</Text>
                                 </TouchableOpacity>
                             </Body>

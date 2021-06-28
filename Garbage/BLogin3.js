@@ -78,7 +78,6 @@ class BLogin3 extends React.Component {
     }
     getuser = async () => {
         const owner_number = await AsyncStorage.getItem('@owner_number')
-        console.log('Owner Number: ', owner_number);
         await firestore()
             .collection('owner')
             .doc(owner_number)

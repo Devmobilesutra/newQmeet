@@ -97,7 +97,7 @@ class Book_Appointment extends React.Component {
                   lineHeight: 21.79,
                   textAlign: 'center'
                 }}>Avoid staying in long queue
-          </Text>
+              </Text>
             </View>
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: hp('4%') }}>
               <Text
@@ -110,9 +110,9 @@ class Book_Appointment extends React.Component {
                   lineHeight: 20
                 }}>
                 Book an appointment from anywhere and{'\n'}
-              check real time updates of{'\n'}
-              your appointment
-          </Text>
+                check real time updates of{'\n'}
+                your appointment
+              </Text>
             </View>
             <View style={{ justifyContent: 'center', alignItems: 'center' }}>
               <TouchableOpacity
@@ -131,7 +131,10 @@ class Book_Appointment extends React.Component {
 
               <View style={{ alignItems: 'center', justifyContent: 'center', marginTop: hp('6%'), marginBottom: hp('6%') }}>
                 <Text style={{ fontSize: wp('3.5%'), color: '#343434', textAlign: 'center' }}> Provide best services to your customers? </Text>
-                <TouchableOpacity onPress={() => this.props.navigation.navigate('BLogin1')}><Text style={{ fontSize: wp('3.5%'), color: 'red', textAlign: 'center' }}> Sign-up your business with us </Text></TouchableOpacity>
+                <TouchableOpacity onPress={() =>
+                  this.props.navigation.navigate('businessForm')
+                  // this.props.navigation.navigate('BLogin1')
+                }><Text style={{ fontSize: wp('3.5%'), color: 'red', textAlign: 'center' }}> Sign-up your business with us </Text></TouchableOpacity>
               </View>
             </View>
           </Content>

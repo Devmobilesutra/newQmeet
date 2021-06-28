@@ -21,6 +21,8 @@ import Appointment_Details from "./screen/Appointment_Details";
 import Appointment_Details_2 from "./screen/Appointment_Details_2";
 import EditBuisness from "./screen/EditBuisness";
 import EditUser from "./screen/EditUser";
+import businessForm from "./screen/businessForm";
+import editBusinessForm from "./screen/editBusinessForm";
 import { widthPercentageToDP } from 'react-native-responsive-screen';
 import App_Header2 from './screen/Common_services/App_Header2'
 import Contact_Us from './screen/Contact_Us_O'
@@ -58,6 +60,9 @@ function App() {
         <Stack.Screen name="EditUser" component={EditUser} options={{ headerShown: false }} />
         <Stack.Screen name="Contact_Us" component={Contact_Us} options={{ headerShown: false }} />{/* Contact Us Owner Side - 27-04-21 */}
         <Stack.Screen name="Contact_Us_U" component={Contact_Us_U} options={{ headerShown: false }} />{/* Contact Us User Side - 27-04-21 */}
+        <Stack.Screen name="businessForm" component={businessForm} options={{ headerShown: false }} />{/* for tabs */}
+        <Stack.Screen name="editBusinessForm" component={editBusinessForm} options={{ headerShown: false }} />{/* for tabs */}
+
       </Stack.Navigator>
     </NavigationContainer>
   );

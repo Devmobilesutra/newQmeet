@@ -25,6 +25,8 @@ export default class businessForm extends Component {
             avatarSource: '',
             fileName: '',
             imagePath: '',
+            userId: '',
+            user_token: '',
             isLoading: false,
 
             // For the business time
@@ -62,8 +64,29 @@ export default class businessForm extends Component {
     };
     async componentDidMount() {
         BackHandler.addEventListener("hardwareBackPress", this.backAction);
+        // The owner is already registered as user. his mobile number is already stored in asyncstorage.
         const value = await AsyncStorage.getItem('@owner_number');
-        this.setState({ owner_number: value })
+        this.setState({ owner_number: value });
+        try {
+            await firestore()
+                .collection('user')
+                .where('mobile_no', '==', value)
+                .get()
+                .then((data) => {
+                    // if (data[0].id === "") {
+                    //     Alert.alert(`Unable to get Document ID for mobile number ${value}. we are not able register you! Please contact Developer@mobilesutra.com`);
+                    // } else {
+                        // For loop is not required we need only 0th element...
+                        data.forEach(e => {
+                            console.log("e has values", e, "\n owner id", e.id);
+                            this.setState({ userId: e.id, user_token: e.data().user_token });
+                        });
+                    // }
+                })
+        } catch {
+            console.log('my error')
+            Alert.alert('Please create your user account first')
+        }
     }
     setImage = () => {
         console.log('setImage function')
@@ -252,7 +275,7 @@ export default class businessForm extends Component {
         this.signUp();
     }
     signUp() {
-        const { owner_number, imagePath, fileName, buisness_Name, Time1_startTime, Time1_endTime, Time2_startTime, Time2_endTime, businessTimeSwitch, appointmentTimeSwitch, aTime1_startTime, aTime1_endTime, aTime2_startTime, aTime2_endTime } = this.state;
+        const { userId, owner_number, imagePath, fileName, buisness_Name, Time1_startTime, Time1_endTime, Time2_startTime, Time2_endTime, businessTimeSwitch, appointmentTimeSwitch, aTime1_startTime, aTime1_endTime, aTime2_startTime, aTime2_endTime } = this.state;
         this.setState({ isLoading: true });
         console.log('uploading image to firebase: ', imagePath, "fileName: ", fileName);
         if (imagePath) {
@@ -264,7 +287,7 @@ export default class businessForm extends Component {
                 reference.getDownloadURL().then(url => {
                     console.log("Stored URL: ", url);
                     firestore().collection('owner').doc(owner_number).set({
-                        user_Id: '',
+                        user_Id: userId,
                         Buisness_name: buisness_Name,
 
                         buisness_start_time: Time1_startTime,
@@ -294,7 +317,7 @@ export default class businessForm extends Component {
                     })
                 })
                 this.setState({ isLoading: false, status: 'Image uploaded successfully' });
-                this.props.navigation.navigate('BLogin3');
+                this.props.navigation.navigate('BLogin3', { businessName: buisness_Name });
             }).catch((e) => {
                 status = 'Something went wrong';
                 console.log('uploading image error => ', e);
@@ -302,7 +325,7 @@ export default class businessForm extends Component {
             });
         } else {
             firestore().collection('owner').doc(owner_number).set({
-                user_Id: '',
+                user_Id: userId,
                 Buisness_name: buisness_Name,
 
                 buisness_start_time: Time1_startTime,
@@ -328,7 +351,7 @@ export default class businessForm extends Component {
                 const type = await AsyncStorage.setItem('@user_type', '2');// 1 for user and two for owner. by default all are users
                 console.log("type second time :", await AsyncStorage.getItem('@user_type'));
                 this.setState({ isLoading: false });
-                this.props.navigation.navigate('BLogin3');
+                this.props.navigation.navigate('BLogin3', { businessName: buisness_Name });
             })
         }
     }
@@ -465,7 +488,7 @@ export default class businessForm extends Component {
                                         <View style={styles.box}>
                                             <TouchableOpacity onPress={() => { this.toggle(4) }}>
                                                 <Text style={{ flex: 6, fontFamily: 'Roboto', fontWeight: '700', fontStyle: 'normal', fontSize: widthPercentageToDP('4') }}>End time</Text>
-                                                <Text style={{ flex: 8, fontFamily: 'Roboto', fontWeight: '500', fontStyle: 'normal', fontSize: widthPercentageToDP('5') }}>{Time2_startTime ? moment(Time2_endTime).format('HH:mm A') : '--:--'}</Text>
+                                                <Text style={{ flex: 8, fontFamily: 'Roboto', fontWeight: '500', fontStyle: 'normal', fontSize: widthPercentageToDP('5') }}>{Time2_endTime ? moment(Time2_endTime).format('HH:mm A') : '--:--'}</Text>
                                             </TouchableOpacity>
                                         </View>
                                     </View>

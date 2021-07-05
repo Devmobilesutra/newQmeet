@@ -21,6 +21,7 @@ export default class editBusinessForm extends Component {
         super(props);
         this.state = {
             owner_number: '',
+            user_Id: '',
             buisness_Name: '',
             avatarSource: '',
             fileName: '',
@@ -69,7 +70,7 @@ export default class editBusinessForm extends Component {
                 console.log(`owners data: `, data.data());
                 this.setState({
                     owner_number: value,
-
+                    user_Id: data.data().user_Id,
                     buisness_Name: data.data().Buisness_name,
                     avatarSource: data.data().image_url,
 
@@ -249,7 +250,24 @@ export default class editBusinessForm extends Component {
     }
     appointmentTimeValidation() {
         const { Time1_startTime, Time1_endTime, Time2_startTime, Time2_endTime, businessTimeSwitch, appointmentTimeSwitch, aTime1_startTime, aTime1_endTime, aTime2_startTime, aTime2_endTime } = this.state;
-        console.log('appointmentTimeValidation');
+        console.log('appointmentTimeValidation', Time1_endTime, aTime1_endTime);
+        console.log("Time1_endTime: ", moment(new Date(Time1_endTime.seconds * 1000 + Time1_endTime.nanoseconds / 1000000)).format("HH:mm:ss"), "aTime1_endTime: ", moment(new Date(aTime1_endTime.seconds * 1000 + aTime1_endTime.nanoseconds / 1000000)).format("HH:mm:ss"));
+        console.log("Comparison1: ", moment(new Date(Time1_endTime.seconds * 1000 + Time1_endTime.nanoseconds / 1000000)).format("HH:mm:ss") < moment(new Date(aTime1_endTime.seconds * 1000 + aTime1_endTime.nanoseconds / 1000000)).format("HH:mm:ss"));
+
+        var end_time;
+        var app_end_time;
+        if (moment(new Date(Time1_endTime.seconds * 1000 + Time1_endTime.nanoseconds / 1000000)).format('hh:mm:ss a') != 'Invalid date') {
+            end_time = new Date(Time1_endTime.seconds * 1000 + Time1_endTime.nanoseconds / 1000000)
+        } else {
+            end_time = Time1_endTime
+        }
+
+        if (moment(new Date(aTime1_endTime.seconds * 1000 + aTime1_endTime.nanoseconds / 1000000)).format('hh:mm:ss a') != 'Invalid date') {
+            app_end_time = new Date(aTime1_endTime.seconds * 1000 + aTime1_endTime.nanoseconds / 1000000)
+        } else {
+            app_end_time = aTime1_endTime
+        }
+
         if (aTime1_startTime == '' || aTime1_startTime == undefined) {
             this.alertModal('Set Business start time of Time 1');
             return
@@ -258,7 +276,8 @@ export default class editBusinessForm extends Component {
             this.alertModal('Set Business end time of Time 1');
             return
         }
-        if (Time1_endTime < aTime1_endTime) {
+        // if (Time1_endTime < aTime1_endTime) {
+        if (end_time < app_end_time) {
             this.alertModal('Appointment End time should be less than Buisness End Time of First Half');
             return
         }
@@ -271,7 +290,23 @@ export default class editBusinessForm extends Component {
                 this.alertModal('Set appointment end time of Time 2');
                 return
             }
-            if (Time2_endTime < aTime2_endTime) {
+
+            var end_time2;
+            var app_end_time2;
+            if (moment(new Date(Time2_endTime.seconds * 1000 + Time2_endTime.nanoseconds / 1000000)).format('hh:mm:ss a') != 'Invalid date') {
+                end_time2 = new Date(Time2_endTime.seconds * 1000 + Time2_endTime.nanoseconds / 1000000)
+            } else {
+                end_time2 = Time2_endTime
+            }
+            if (moment(new Date(aTime2_endTime.seconds * 1000 + aTime2_endTime.nanoseconds / 1000000)).format('hh:mm:ss a') != 'Invalid date') {
+                app_end_time2 = new Date(aTime2_endTime.seconds * 1000 + aTime2_endTime.nanoseconds / 1000000)
+            } else {
+                app_end_time2 = aTime2_endTime
+            }
+            console.log("Time2_endTime: ", moment(new Date(Time2_endTime.seconds * 1000 + Time2_endTime.nanoseconds / 1000000)).format("HH:mm:ss"), "aTime2_endTime: ", moment(new Date(aTime2_endTime.seconds * 1000 + aTime2_endTime.nanoseconds / 1000000)).format("HH:mm:ss"));
+            console.log("Comparison2: ", moment(new Date(Time2_endTime.seconds * 1000 + Time2_endTime.nanoseconds / 1000000)).format("HH:mm:ss") < moment(new Date(aTime2_endTime.seconds * 1000 + aTime2_endTime.nanoseconds / 1000000)).format("HH:mm:ss"));
+            // if (Time2_endTime < aTime2_endTime) {
+            if (end_time2 < app_end_time2) {
                 this.alertModal('Appointment End time should be less than Buisness End Time of Second Half');
                 return
             }
@@ -281,7 +316,7 @@ export default class editBusinessForm extends Component {
         this.signUp();
     }
     signUp() {
-        const { avatarSource, owner_number, imagePath, fileName, buisness_Name, Time1_startTime, Time1_endTime, Time2_startTime, Time2_endTime, businessTimeSwitch, appointmentTimeSwitch, aTime1_startTime, aTime1_endTime, aTime2_startTime, aTime2_endTime } = this.state;
+        const { user_Id, avatarSource, owner_number, imagePath, fileName, buisness_Name, Time1_startTime, Time1_endTime, Time2_startTime, Time2_endTime, businessTimeSwitch, appointmentTimeSwitch, aTime1_startTime, aTime1_endTime, aTime2_startTime, aTime2_endTime } = this.state;
         this.setState({ isLoading: true });
         console.log('uploading image to firebase: ', imagePath, "fileName: ", fileName);
         if (imagePath) {
@@ -293,7 +328,7 @@ export default class editBusinessForm extends Component {
                 reference.getDownloadURL().then(url => {
                     console.log("Stored URL: ", url);
                     firestore().collection('owner').doc(owner_number).set({
-                        user_Id: '',
+                        user_Id: user_Id,
                         Buisness_name: buisness_Name,
 
                         buisness_start_time: Time1_startTime,
@@ -319,7 +354,7 @@ export default class editBusinessForm extends Component {
                         const type = await AsyncStorage.setItem('@user_type', '2');// 1 for user and two for owner. by default all are users
                         console.log("type second time :", await AsyncStorage.getItem('@user_type'));
                         // this.setState({ loader: false })
-                        // this.props.navigation.navigate('BLogin3');
+                        this.props.navigation.navigate('BLogin3', { businessName: buisness_Name });
                     })
                 })
                 this.setState({ isLoading: false, status: 'Image uploaded successfully' });
@@ -331,7 +366,7 @@ export default class editBusinessForm extends Component {
             });
         } else {
             firestore().collection('owner').doc(owner_number).update({
-                user_Id: '',
+                user_Id: user_Id,
                 Buisness_name: buisness_Name,
 
                 buisness_start_time: Time1_startTime,
@@ -357,7 +392,7 @@ export default class editBusinessForm extends Component {
                 const type = await AsyncStorage.setItem('@user_type', '2');// 1 for user and two for owner. by default all are users
                 console.log("type second time :", await AsyncStorage.getItem('@user_type'));
                 this.setState({ isLoading: false });
-                this.props.navigation.navigate('BLogin3');
+                this.props.navigation.navigate('BLogin3', { businessName: buisness_Name });
             })
         }
     }
@@ -612,7 +647,7 @@ export default class editBusinessForm extends Component {
                                                     {aTime2_endTime ? moment(new Date(aTime2_endTime.seconds * 1000 + aTime2_endTime.nanoseconds / 1000000)).format('hh:mm A') == 'Invalid date' ? moment(aTime2_endTime).format('hh:mm A')
                                                         : moment(new Date(aTime2_endTime.seconds * 1000 + aTime2_endTime.nanoseconds / 1000000)).format('hh:mm A')
                                                         : '--:--'}
-                                                    </Text>
+                                                </Text>
                                             </TouchableOpacity>
                                         </View>
                                     </View>

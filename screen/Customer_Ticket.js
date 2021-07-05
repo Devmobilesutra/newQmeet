@@ -101,7 +101,7 @@ class Customer_Ticket extends React.Component {
       .then(owner_profile => {
         console.log(owner_profile.data().name)
         console.log(owner_profile.data().mobile_no)
-        if (shop_image.data().image_url != undefined) { // for setting owner business image
+        if (shop_image.data().image_url != undefined || shop_image.data().image_url !== "") { // for setting owner business image
           this.setState({
             ShopImage: shop_image.data().image_url
           })

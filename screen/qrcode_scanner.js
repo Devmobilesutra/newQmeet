@@ -48,7 +48,7 @@ class qrcode_scanner extends React.Component {
         console.log("id", e.data)
     }
     check_availability(check_ownerId) {
-        console.log("This is Check Avilability");
+        console.log("This is Check Avilability: ", check_ownerId);
         firestore().collection('owner').doc(check_ownerId).get()
             .then(data => {
                 if(data.exists) {

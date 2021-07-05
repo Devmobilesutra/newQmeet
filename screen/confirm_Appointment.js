@@ -107,13 +107,13 @@ class confirm_Appointment extends React.Component {
       user_name1 = element.data().name
     });
     // fetching data for that of owner profile with its data related to his user profile
-    console.log("prop owner Id", this.props.route.params.ownerId)
-    firestore().collection('owner').doc(this.props.route.params.ownerId).get().then(async (snapshot) => {
+    console.log("prop owner Id", this.props.route.params.ownerId);
+    await firestore().collection('owner').doc(this.props.route.params.ownerId).get().then(async (snapshot) => {
 
       const d = snapshot.data().user_Id;
       console.log(d)
 
-      const snap = await firestore().doc(`user/${d}`).get();
+      const snap = await firestore().doc(`user/${d}`).get(); // Data of owner from user collection
 
       if (snapshot.data().shift) {
         this.setState({
@@ -247,7 +247,7 @@ class confirm_Appointment extends React.Component {
   }
   async confirm_Appointment() {
 
-    if (await AsyncStorage.getItem('@owner_number') == 'true') { // checking whether user already set an appointment or not
+    if (await AsyncStorage.getItem('@SetAppointment') == 'true') { // checking whether user already set an appointment or not
       Alert.alert('You have already set an appointment')
     } else {
 

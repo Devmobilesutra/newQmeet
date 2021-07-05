@@ -233,6 +233,7 @@ class Welcome extends React.Component {
             Linking.openURL('http://qmeet.in')
         } else {
             console.log("un supported", supported);
+            // Alert.alert("Currently not supported")''
         }
     }
     render() {

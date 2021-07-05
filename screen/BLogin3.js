@@ -71,29 +71,26 @@ class BLogin3 extends React.Component {
     componentWillUnmount() {
         BackHandler.removeEventListener("hardwareBackPress", this.backAction);
     }
-    componentDidMount() {
-        this.getuser()
-        // this.getDataURL()
-        BackHandler.addEventListener("hardwareBackPress", this.backAction);
-    }
-    getuser = async () => {
+    async componentDidMount() {
+        // await this.getuser();
         const owner_number = await AsyncStorage.getItem('@owner_number')
-        console.log('Owner Number: ', owner_number);
+        console.log('Owner Number: ', owner_number, "\n Business Name: ", this.props.route.params.businessName); //this.props.route.params.businessName
         await firestore()
             .collection('owner')
             .doc(owner_number)
             .get()
-            .then((firebase_data) => {
-                console.log(firebase_data.data())
+            .then(firebase_data => {
+                console.log("Owners data fetched from firebase:", firebase_data.data())
                 this.setState({
                     QRCode_value: firebase_data.id,
                     Buisness_name: firebase_data.data().Buisness_name,
                     mobile: firebase_data.id
-                }, () => {
-                    console.log("OR Code Array", this.state.QRCode_value)
-                    console.log("owner Number", this.state.mobile)
-                })
-            })
+                },() => console.log("Data: ", this.state.QRCode_value, this.state.Buisness_name, this.state.mobile))
+            });
+        BackHandler.addEventListener("hardwareBackPress", this.backAction);
+    }
+    getuser = async () => {
+
     }
 
     getQR = () =>
